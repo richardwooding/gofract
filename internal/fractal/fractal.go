@@ -94,7 +94,7 @@ func Default() Params {
 const deepScale = 1e-8
 
 // Deep reports whether the view needs arbitrary precision.
-func (p Params) Deep() bool { return p.Scale < deepScale }
+func (p Params) Deep() bool { return p.Scale > 0 && p.Scale < deepScale }
 
 // Prec is the number of mantissa bits needed for centre arithmetic at this
 // zoom: enough to place a pixel with 64 bits to spare.

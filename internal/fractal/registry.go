@@ -86,21 +86,23 @@ func New(p Params) (Fractal, error) {
 	if err != nil {
 		return nil, err
 	}
+	if p.Julia && !f.hasJulia {
+		return nil, fmt.Errorf("fractal: %s has no Julia variant", f.name)
+	}
+	if p.Deep() {
+		if df := deepFamilies[f.name]; df != nil {
+			return newPerturb(p, df), nil
+		}
+	}
 	cx, cy := p.CenterF()
 	if p.Julia {
-		if !f.hasJulia {
-			return nil, fmt.Errorf("fractal: %s has no Julia variant", f.name)
-		}
 		return &juliaSet{name: f.name, k: f.k, cx: cx, cy: cy, cr: p.JuliaRe, ci: p.JuliaIm}, nil
-	}
-	if p.Deep() && f.name == "mandelbrot" {
-		return newPerturb(p), nil
 	}
 	return &mandelSet{name: f.name, k: f.k, cx: cx, cy: cy, shortcut: f.shortcut}, nil
 }
 
 // HasDeep reports whether the family can render below float64 precision.
-func HasDeep(p Params) bool { return p.Type == "mandelbrot" && !p.Julia }
+func HasDeep(p Params) bool { return deepFamilies[p.Type] != nil }
 
 type mandelSet struct {
 	name     string

@@ -247,7 +247,7 @@ func TestPerturbationMatchesFloat64(t *testing.T) {
 		if _, ok := direct.(*mandelSet); !ok {
 			t.Fatalf("expected direct kernel at scale %v, got %T", p.Scale, direct)
 		}
-		pert := newPerturb(p)
+		pert := newPerturb(p, deepFamilies["mandelbrot"])
 		w, h := 64, 48
 		mismatch, inside := 0, 0
 		for y := 0; y < h; y++ {
