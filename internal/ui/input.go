@@ -132,6 +132,13 @@ func (a *App) handleView() error {
 		a.setParams(p.Zoom(1 / keyZoom))
 	case inpututil.IsKeyJustPressed(ebiten.KeyHome):
 		a.setParams(fractal.Default())
+	case inpututil.IsKeyJustPressed(ebiten.KeyG):
+		if a.gpu == nil {
+			a.flash("gpu shader unavailable")
+		} else {
+			a.gpuMode = (a.gpuMode + 1) % 3
+			a.flash("gpu %s", a.gpuMode)
+		}
 	case inpututil.IsKeyJustPressed(ebiten.KeyTab):
 		a.showStatus = !a.showStatus
 	case inpututil.IsKeyJustPressed(ebiten.KeyF):

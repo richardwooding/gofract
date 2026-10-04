@@ -63,7 +63,12 @@ func (a *App) drawStatus(dst *ebiten.Image) {
 	if a.cycling {
 		fmt.Fprintf(&b, " cyc %+.1f", a.cycleSpeed)
 	}
-	if a.renderer.Busy() {
+	if a.gpuActive {
+		b.WriteString("  gpu")
+	} else if a.gpuMode != gpuAuto {
+		fmt.Fprintf(&b, "  cpu(gpu %s)", a.gpuMode)
+	}
+	if !a.gpuActive && a.renderer.Busy() {
 		fmt.Fprintf(&b, "  pass %d/%d", a.renderer.Pass()+1, render.Passes())
 	}
 	fmt.Fprintf(&b, "  %.0f fps", ebiten.ActualFPS())
@@ -99,6 +104,7 @@ Keys
   P / Shift+P      next / previous palette
   L                load a Fractint .map palette
   S                save PNG + JSON of this view
+  G                gpu shader: auto / off / on
   Tab              toggle status line
   F                toggle fullscreen
   F1 or H          this help

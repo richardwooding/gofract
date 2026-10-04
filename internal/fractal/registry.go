@@ -159,3 +159,14 @@ func (p Params) WithType(name string) (Params, error) {
 	q.MaxIter = p.MaxIter
 	return q, nil
 }
+
+// TypeIndex returns the family's position in Names(), or -1 if unknown. The
+// GPU shader selects its kernel by this index.
+func TypeIndex(name string) int {
+	for i, f := range families {
+		if f.name == name {
+			return i
+		}
+	}
+	return -1
+}

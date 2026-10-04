@@ -5,6 +5,7 @@ package ui
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/hajimehoshi/bitmapfont/v4"
@@ -32,6 +33,8 @@ type Config struct {
 	Workers int
 	Density float64  // palette steps per iteration; 0 means 1
 	SaveDir string   // where S writes PNG + JSON; "" means current directory
+	GPU     string   // "auto", "off" or "on"
+	Shot    string   // if set, render one frame to this PNG and exit
 	MapDirs []string // directories searched for .map files
 }
 
@@ -58,6 +61,13 @@ type App struct {
 	cycleSpeed  float64
 	cycling     bool
 	density     float64 // palette steps per iteration
+
+	gpu       *gpu
+	gpuMode   gpuMode
+	gpuActive bool
+
+	frames       int
+	settledDraws int // consecutive frames drawn with the final image
 
 	mode       mode
 	menuSel    int
@@ -89,6 +99,21 @@ func New(cfg Config) (*App, error) {
 	if a.density <= 0 {
 		a.density = 1
 	}
+	switch cfg.GPU {
+	case "off":
+		a.gpuMode = gpuOff
+	case "on":
+		a.gpuMode = gpuOn
+	case "", "auto":
+	default:
+		return nil, fmt.Errorf("gpu: want auto, off or on, got %q", cfg.GPU)
+	}
+	if g, err := newGPU(); err != nil {
+		log.Printf("gpu disabled: %v", err)
+		a.gpuMode = gpuOff
+	} else {
+		a.gpu = g
+	}
 	if cfg.Palette != nil {
 		a.palettes = append([]*palette.Palette{cfg.Palette}, a.palettes...)
 	}
@@ -119,8 +144,28 @@ func (a *App) Update() error {
 	if a.width == 0 {
 		return nil
 	}
+	a.frames++
+	if a.cfg.Shot != "" {
+		// Headless-style capture: once the finished image has been drawn
+		// a couple of times, save it and quit.
+		if a.settledDraws >= 2 && a.img != nil {
+			if err := a.savePNG(a.cfg.Shot); err != nil {
+				return err
+			}
+			return ebiten.Termination
+		}
+	}
 	if err := a.handleInput(); err != nil {
 		return err
+	}
+	active := a.wantGPU()
+	if active != a.gpuActive {
+		a.gpuActive = active
+		if active {
+			a.renderer.Stop()
+		} else {
+			a.dirty = true
+		}
 	}
 	if a.dirty {
 		a.restart()
@@ -139,13 +184,28 @@ func (a *App) Update() error {
 
 func (a *App) restart() {
 	a.dirty = false
+	a.settledDraws = 0
 	f, err := fractal.New(a.params)
 	if err != nil {
 		a.flash("%v", err)
 		return
 	}
 	a.fract = f
+	if a.gpuActive {
+		return
+	}
 	a.renderer.Start(f, a.params, a.width, a.height)
+}
+
+// wantGPU decides whether this frame is drawn by the shader.
+func (a *App) wantGPU() bool {
+	if a.gpu == nil || a.gpuMode == gpuOff {
+		return false
+	}
+	if a.gpuMode == gpuOn {
+		return true
+	}
+	return a.gpu.canRender(a.params, a.width)
 }
 
 // setParams records the current view for undo and schedules a re-render.
@@ -181,7 +241,11 @@ func (a *App) flash(format string, args ...any) {
 // Draw implements ebiten.Game.
 func (a *App) Draw(screen *ebiten.Image) {
 	var w, h int
-	a.iters, w, h = a.renderer.Snapshot(a.iters)
+	if a.gpuActive {
+		w, h = a.width, a.height
+	} else {
+		a.iters, w, h = a.renderer.Snapshot(a.iters)
+	}
 	if w == 0 || h == 0 {
 		return
 	}
@@ -193,13 +257,24 @@ func (a *App) Draw(screen *ebiten.Image) {
 		a.pix = make([]byte, w*h*4)
 		a.recolor = true
 	}
-	busy := a.renderer.Busy()
-	if busy || a.wasBusy || a.cycling || a.recolor {
-		a.colorize()
-		a.img.WritePixels(a.pix)
-		a.recolor = false
+	if a.gpuActive {
+		a.gpu.draw(a.img, a.params, a.palette(), int(a.cycleOffset), a.density)
+		a.recolor = true // CPU pixels are stale; rebuild on the way back
+		a.settledDraws++
+	} else {
+		busy := a.renderer.Busy()
+		if busy || a.wasBusy || a.cycling || a.recolor {
+			a.colorize()
+			a.img.WritePixels(a.pix)
+			a.recolor = false
+		}
+		if busy || a.wasBusy {
+			a.settledDraws = 0
+		} else {
+			a.settledDraws++
+		}
+		a.wasBusy = busy
 	}
-	a.wasBusy = busy
 	screen.DrawImage(a.img, nil)
 
 	a.zoom.draw(screen, w, h)

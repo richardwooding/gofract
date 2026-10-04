@@ -24,16 +24,33 @@ type Sidecar struct {
 	Saved   time.Time      `json:"saved"`
 }
 
-// save writes the current frame as PNG plus a JSON sidecar and returns the
-// PNG path.
-func (a *App) save() (string, error) {
+// savePNG writes the current frame to path.
+func (a *App) savePNG(path string) error {
 	if a.img == nil {
-		return "", fmt.Errorf("nothing rendered yet")
+		return fmt.Errorf("nothing rendered yet")
 	}
 	w, h := a.img.Bounds().Dx(), a.img.Bounds().Dy()
 	if len(a.pix) != w*h*4 {
-		return "", fmt.Errorf("pixel buffer out of sync")
+		return fmt.Errorf("pixel buffer out of sync")
 	}
+	if a.gpuActive {
+		a.img.ReadPixels(a.pix)
+	}
+	img := &image.RGBA{Pix: a.pix, Stride: w * 4, Rect: image.Rect(0, 0, w, h)}
+	f, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	if err := png.Encode(f, img); err != nil {
+		f.Close()
+		return err
+	}
+	return f.Close()
+}
+
+// save writes the current frame as PNG plus a JSON sidecar and returns the
+// PNG path.
+func (a *App) save() (string, error) {
 	dir := a.cfg.SaveDir
 	if dir == "" {
 		dir = "."
@@ -42,19 +59,10 @@ func (a *App) save() (string, error) {
 		return "", err
 	}
 	base := filepath.Join(dir, "gofract-"+time.Now().Format("20060102-150405"))
-	img := &image.RGBA{Pix: a.pix, Stride: w * 4, Rect: image.Rect(0, 0, w, h)}
-
-	f, err := os.Create(base + ".png")
-	if err != nil {
+	if err := a.savePNG(base + ".png"); err != nil {
 		return "", err
 	}
-	if err := png.Encode(f, img); err != nil {
-		f.Close()
-		return "", err
-	}
-	if err := f.Close(); err != nil {
-		return "", err
-	}
+	w, h := a.img.Bounds().Dx(), a.img.Bounds().Dy()
 
 	sc := Sidecar{Params: a.params, Palette: a.palette().Name, Density: a.density, Width: w, Height: h, Saved: time.Now()}
 	data, err := json.MarshalIndent(sc, "", "  ")

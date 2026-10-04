@@ -3,7 +3,8 @@
 A cross-platform fractal viewer in the spirit of the classic Fractint,
 written in Go on [Ebitengine](https://ebitengine.org).
 
-Hotkey driven, progressive rendering from coarse to fine, palette cycling,
+Hotkey driven, GPU shader rendering for shallow zooms with an automatic
+hand-off to a progressive CPU renderer when float32 runs out, palette cycling,
 rubber-band zoom box, Fractint `.map` palettes. Families: Mandelbrot, Burning
 Ship, Tricorn, Multibrot (z^3), Newton (z^3 - 1), each escape-time family
 with its Julia variant.
@@ -44,7 +45,7 @@ The binary runs on the host.
 ## Use
 
     gofract [-width 1024] [-height 768] [-type burningship] [-iter 1024]
-            [-list]
+            [-gpu auto|off|on] [-shot frame.png] [-list]
             [-map palette.map] [-load view.json] [-out dir] [-workers n]
 
 Press `F1` in the viewer for the full key list. The essentials:
@@ -61,9 +62,13 @@ Press `F1` in the viewer for the full key list. The essentials:
 | `,` `.` | halve / double max iterations |
 | C, `-`, `=` | toggle palette cycling, slower, faster |
 | P | next palette |
+| G | GPU shader: auto, off, on |
 | L | load a `.map` from `./maps` or `$XDG_CONFIG_HOME/gofract/maps` |
 | S | save PNG and a JSON sidecar reopenable with `-load` |
 | Esc | quit |
+
+`-shot file.png` renders one frame and exits, handy for scripting or for
+comparing the GPU and CPU paths.
 
 ## Layout
 
@@ -71,7 +76,8 @@ Press `F1` in the viewer for the full key list. The essentials:
     internal/fractal   Params (view maths) and the escape-time kernels
     internal/render    progressive tiled renderer on a goroutine pool
     internal/palette   256-colour palettes, presets, .map load/save
-    internal/ui        Ebitengine game loop, input, overlays, saving
+    internal/ui        Ebitengine game loop, input, overlays, saving,
+                       and the Kage shader (fractal.kage)
 
 ## Tests
 

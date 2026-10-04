@@ -26,6 +26,8 @@ func main() {
 		typ     = flag.String("type", "", "fractal type to start with (see -list)")
 		list    = flag.Bool("list", false, "print the fractal types and exit")
 		iter    = flag.Int("iter", 0, "max iterations (default 256)")
+		gpu     = flag.String("gpu", "auto", "shader rendering: auto, off or on")
+		shot    = flag.String("shot", "", "render one frame to this PNG file and exit")
 	)
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "usage: gofract [flags]\n\nPress F1 in the viewer for the key reference.\n\n")
@@ -43,6 +45,8 @@ func main() {
 		Params:  fractal.Default(),
 		Workers: *workers,
 		SaveDir: *saveDir,
+		GPU:     *gpu,
+		Shot:    *shot,
 		MapDirs: mapDirs(),
 	}
 	if *load != "" {
