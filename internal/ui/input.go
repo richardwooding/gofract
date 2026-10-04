@@ -68,7 +68,9 @@ func (a *App) handleView() error {
 			a.menuSel = 0
 		}
 	case inpututil.IsKeyJustPressed(ebiten.KeySpace):
-		if p.Type == "julia" {
+		if !fractal.HasJulia(p.Type) {
+			a.flash("%s has no Julia variant", p.Type)
+		} else if p.Julia {
 			a.setParams(p.ToMandelbrot())
 		} else {
 			cx, cy := ebiten.CursorPosition()
@@ -102,6 +104,18 @@ func (a *App) handleView() error {
 		}
 		a.recolor = true
 		a.flash("palette %s", a.palette().Name)
+	case inpututil.IsKeyJustPressed(ebiten.KeyBracketLeft):
+		if a.density > 1.0/64 {
+			a.density /= 2
+			a.recolor = true
+		}
+		a.flash("colour density x%g", a.density)
+	case inpututil.IsKeyJustPressed(ebiten.KeyBracketRight):
+		if a.density < 64 {
+			a.density *= 2
+			a.recolor = true
+		}
+		a.flash("colour density x%g", a.density)
 	case inpututil.IsKeyJustPressed(ebiten.KeyComma):
 		if p.MaxIter/2 >= minIter {
 			p.MaxIter /= 2
@@ -186,16 +200,13 @@ func (a *App) handleMenu(n int, pick func(int)) {
 
 func (a *App) pickType(i int) {
 	name := fractal.Names()[i]
-	p := a.params
-	switch {
-	case name == p.Type:
+	if name == a.params.Type {
 		return
-	case name == "julia":
-		p = p.ToJulia(p.JuliaRe, p.JuliaIm)
-	case name == "mandelbrot":
-		p = p.ToMandelbrot()
-	default:
-		p.Type = name
+	}
+	p, err := a.params.WithType(name)
+	if err != nil {
+		a.flash("%v", err)
+		return
 	}
 	a.setParams(p)
 }

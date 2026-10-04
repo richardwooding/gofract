@@ -1,16 +1,16 @@
-// Package fractal defines the escape-time fractals gofract can render and the
+// Package fractal defines the fractal families gofract can render and the
 // view parameters that select a region of the complex plane.
 package fractal
 
-import "math"
-
-// Params fully describes what to render: which fractal, where in the plane,
-// and how hard to try before declaring a point inside the set.
+// Params fully describes what to render: which family, whether in Julia
+// mode, where in the plane, and how hard to try before declaring a point
+// inside the set.
 //
 // Scale is the width of the viewport in complex-plane units, so Params is
 // independent of the pixel size of the window.
 type Params struct {
 	Type    string  `json:"type"`
+	Julia   bool    `json:"julia,omitempty"`
 	CenterX float64 `json:"center_x"`
 	CenterY float64 `json:"center_y"`
 	Scale   float64 `json:"scale"`
@@ -21,15 +21,7 @@ type Params struct {
 
 // Default returns the classic opening view of the Mandelbrot set.
 func Default() Params {
-	return Params{
-		Type:    "mandelbrot",
-		CenterX: -0.5,
-		CenterY: 0,
-		Scale:   3.5,
-		MaxIter: 256,
-		JuliaRe: -0.8,
-		JuliaIm: 0.156,
-	}
+	return families[0].start()
 }
 
 // Unit returns the complex-plane size of one pixel for a viewport of width w.
@@ -82,35 +74,24 @@ func (p Params) Zoom(factor float64) Params {
 	return p
 }
 
+// Label is the human-readable name of the current fractal, for example
+// "burningship julia".
+func (p Params) Label() string {
+	if p.Julia {
+		return p.Type + " julia"
+	}
+	return p.Type
+}
+
 // Fractal computes the smooth escape value of a single point.
 type Fractal interface {
-	// Name is the registry key, for example "mandelbrot".
+	// Name is the family key, for example "mandelbrot".
 	Name() string
 	// Iterate returns a smooth iteration count >= 0 for points that escape
-	// within maxIter iterations, or Inside for points that do not.
+	// (or converge, for root finders) within maxIter iterations, or Inside
+	// for points that do not.
 	Iterate(x, y float64, maxIter int) float32
 }
 
 // Inside is the value Iterate returns for points that never escape.
 const Inside float32 = -1
-
-// bailout is the squared magnitude beyond which an orbit is considered
-// escaped. A large value makes the smooth colouring continuous.
-const bailout = 1 << 16
-
-// escape iterates z = z^2 + c from z0 and returns the smooth escape count.
-func escape(zr, zi, cr, ci float64, maxIter int) float32 {
-	for i := 0; i < maxIter; i++ {
-		zr2 := zr * zr
-		zi2 := zi * zi
-		if zr2+zi2 > bailout {
-			// Continuous colouring: i + 1 - log2(log|z|).
-			logMag := math.Log(zr2+zi2) / 2
-			nu := math.Log(logMag/math.Ln2) / math.Ln2
-			return float32(float64(i) + 1 - nu)
-		}
-		zi = 2*zr*zi + ci
-		zr = zr2 - zi2 + cr
-	}
-	return Inside
-}

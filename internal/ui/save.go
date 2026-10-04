@@ -18,6 +18,7 @@ import (
 type Sidecar struct {
 	Params  fractal.Params `json:"params"`
 	Palette string         `json:"palette"`
+	Density float64        `json:"density,omitempty"`
 	Width   int            `json:"width"`
 	Height  int            `json:"height"`
 	Saved   time.Time      `json:"saved"`
@@ -55,7 +56,7 @@ func (a *App) save() (string, error) {
 		return "", err
 	}
 
-	sc := Sidecar{Params: a.params, Palette: a.palette().Name, Width: w, Height: h, Saved: time.Now()}
+	sc := Sidecar{Params: a.params, Palette: a.palette().Name, Density: a.density, Width: w, Height: h, Saved: time.Now()}
 	data, err := json.MarshalIndent(sc, "", "  ")
 	if err != nil {
 		return "", err

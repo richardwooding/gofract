@@ -10,7 +10,7 @@ func renderOnce(t testing.TB, workers, w, h int) []float32 {
 	t.Helper()
 	r := New(workers)
 	p := fractal.Default()
-	r.Start(fractal.Mandelbrot{}, p, w, h)
+	r.Start(mandel(), p, w, h)
 	r.Wait()
 	if r.Busy() {
 		t.Fatal("still busy after Wait")
@@ -39,7 +39,7 @@ func TestFinalPassMatchesDirectEvaluation(t *testing.T) {
 	w, h := 160, 90
 	buf := renderOnce(t, 4, w, h)
 	p := fractal.Default()
-	m := fractal.Mandelbrot{}
+	m := mandel()
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			px, py := p.PixelToPlane(float64(x), float64(y), w, h)
@@ -56,15 +56,15 @@ func TestRestartAbandonsOldRender(t *testing.T) {
 	p := fractal.Default()
 	p.MaxIter = 20000
 	p.Scale = 1e-6 // deep enough to be slow
-	r.Start(fractal.Mandelbrot{}, p, 400, 400)
+	r.Start(mandel(), p, 400, 400)
 	q := fractal.Default()
-	r.Start(fractal.Mandelbrot{}, q, 64, 64)
+	r.Start(mandel(), q, 64, 64)
 	r.Wait()
 	buf, w, h := r.Snapshot(nil)
 	if w != 64 || h != 64 {
 		t.Fatalf("dims %dx%d", w, h)
 	}
-	m := fractal.Mandelbrot{}
+	m := mandel()
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			px, py := q.PixelToPlane(float64(x), float64(y), w, h)
@@ -79,7 +79,15 @@ func BenchmarkMandelbrot1280x720(b *testing.B) {
 	r := New(0)
 	p := fractal.Default()
 	for i := 0; i < b.N; i++ {
-		r.Start(fractal.Mandelbrot{}, p, 1280, 720)
+		r.Start(mandel(), p, 1280, 720)
 		r.Wait()
 	}
+}
+
+func mandel() fractal.Fractal {
+	f, err := fractal.New(fractal.Default())
+	if err != nil {
+		panic(err)
+	}
+	return f
 }

@@ -30,6 +30,7 @@ type Config struct {
 	Params  fractal.Params
 	Palette *palette.Palette // optional extra palette, selected at start
 	Workers int
+	Density float64  // palette steps per iteration; 0 means 1
 	SaveDir string   // where S writes PNG + JSON; "" means current directory
 	MapDirs []string // directories searched for .map files
 }
@@ -56,6 +57,7 @@ type App struct {
 	cycleOffset float64
 	cycleSpeed  float64
 	cycling     bool
+	density     float64 // palette steps per iteration
 
 	mode       mode
 	menuSel    int
@@ -80,8 +82,12 @@ func New(cfg Config) (*App, error) {
 		renderer:   render.New(cfg.Workers),
 		palettes:   palette.Presets(),
 		cycleSpeed: 1,
+		density:    cfg.Density,
 		face:       text.NewGoXFace(bitmapfont.Face),
 		showStatus: true,
+	}
+	if a.density <= 0 {
+		a.density = 1
 	}
 	if cfg.Palette != nil {
 		a.palettes = append([]*palette.Palette{cfg.Palette}, a.palettes...)
@@ -214,6 +220,7 @@ func (a *App) Draw(screen *ebiten.Image) {
 func (a *App) colorize() {
 	pal := a.palette()
 	off := int(a.cycleOffset)
+	dens := float32(a.density)
 	pix := a.pix
 	inside := pal.Colors[0]
 	for i, v := range a.iters {
@@ -222,7 +229,7 @@ func (a *App) colorize() {
 			pix[o], pix[o+1], pix[o+2], pix[o+3] = inside.R, inside.G, inside.B, 255
 			continue
 		}
-		idx := (int(v) + off) % palette.Ring
+		idx := (int(v*dens) + off) % palette.Ring
 		c := pal.Colors[1+idx]
 		pix[o], pix[o+1], pix[o+2], pix[o+3] = c.R, c.G, c.B, 255
 	}

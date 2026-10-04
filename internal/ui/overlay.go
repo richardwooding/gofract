@@ -52,11 +52,14 @@ func (a *App) drawStatus(dst *ebiten.Image) {
 	p := a.params
 	digits := int(math.Max(6, -math.Log10(p.Scale)+5))
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s  centre %.*g %+.*gi  width %.4g  iter %d", p.Type, digits, p.CenterX, digits, p.CenterY, p.Scale, p.MaxIter)
-	if p.Type == "julia" {
+	fmt.Fprintf(&b, "%s  centre %.*g %+.*gi  width %.4g  iter %d", p.Label(), digits, p.CenterX, digits, p.CenterY, p.Scale, p.MaxIter)
+	if p.Julia {
 		fmt.Fprintf(&b, "  c=%.6g%+.6gi", p.JuliaRe, p.JuliaIm)
 	}
 	fmt.Fprintf(&b, "  pal %s", a.palette().Name)
+	if a.density != 1 {
+		fmt.Fprintf(&b, " x%g", a.density)
+	}
 	if a.cycling {
 		fmt.Fprintf(&b, " cyc %+.1f", a.cycleSpeed)
 	}
@@ -87,9 +90,10 @@ Keys
   PgUp / PgDn      zoom in / out 2x
   Home             reset view
   Backspace        undo last view change
-  Space            Mandelbrot <-> Julia at cursor
+  Space            toggle Julia mode, c = point under cursor
   T                choose fractal type
   , / .            halve / double max iterations
+  [ / ]            halve / double colour density
   C                toggle palette cycling
   - / =            cycle slower / faster (sign reverses)
   P / Shift+P      next / previous palette

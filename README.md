@@ -4,7 +4,9 @@ A cross-platform fractal viewer in the spirit of the classic Fractint,
 written in Go on [Ebitengine](https://ebitengine.org).
 
 Hotkey driven, progressive rendering from coarse to fine, palette cycling,
-rubber-band zoom box, Mandelbrot and Julia sets, Fractint `.map` palettes.
+rubber-band zoom box, Fractint `.map` palettes. Families: Mandelbrot, Burning
+Ship, Tricorn, Multibrot (z^3), Newton (z^3 - 1), each escape-time family
+with its Julia variant.
 
 ## Build
 
@@ -41,7 +43,8 @@ The binary runs on the host.
 
 ## Use
 
-    gofract [-width 1024] [-height 768] [-type julia] [-iter 1024]
+    gofract [-width 1024] [-height 768] [-type burningship] [-iter 1024]
+            [-list]
             [-map palette.map] [-load view.json] [-out dir] [-workers n]
 
 Press `F1` in the viewer for the full key list. The essentials:
@@ -52,7 +55,8 @@ Press `F1` in the viewer for the full key list. The essentials:
 | right click / wheel | zoom out / in about the cursor |
 | arrows, PgUp, PgDn, Home | pan, zoom, reset |
 | Backspace | undo the last view change |
-| Space | toggle Mandelbrot and Julia at the cursor point |
+| Space | toggle Julia mode with c at the cursor point |
+| `[` `]` | halve / double colour density |
 | T | choose the fractal type |
 | `,` `.` | halve / double max iterations |
 | C, `-`, `=` | toggle palette cycling, slower, faster |

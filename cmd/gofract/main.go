@@ -23,7 +23,8 @@ func main() {
 		load    = flag.String("load", "", "JSON sidecar written by S to reopen a view")
 		mapFile = flag.String("map", "", "Fractint .map palette to start with")
 		saveDir = flag.String("out", "", "directory for saved images (default: current directory)")
-		typ     = flag.String("type", "", "fractal type to start with: mandelbrot or julia")
+		typ     = flag.String("type", "", "fractal type to start with (see -list)")
+		list    = flag.Bool("list", false, "print the fractal types and exit")
 		iter    = flag.Int("iter", 0, "max iterations (default 256)")
 	)
 	flag.Usage = func() {
@@ -31,6 +32,12 @@ func main() {
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+	if *list {
+		for _, n := range fractal.Names() {
+			fmt.Println(n)
+		}
+		return
+	}
 
 	cfg := ui.Config{
 		Params:  fractal.Default(),
@@ -44,12 +51,14 @@ func main() {
 			log.Fatal(err)
 		}
 		cfg.Params = sc.Params
+		cfg.Density = sc.Density
 	}
 	if *typ != "" {
-		cfg.Params.Type = *typ
-		if _, err := fractal.New(cfg.Params); err != nil {
-			log.Fatal(err)
+		p, err := fractal.Start(*typ)
+		if err != nil {
+			log.Fatalf("%v (choose from %v)", err, fractal.Names())
 		}
+		cfg.Params = p
 	}
 	if *iter > 0 {
 		cfg.Params.MaxIter = *iter
