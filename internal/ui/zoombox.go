@@ -55,8 +55,7 @@ func (z *zoomBox) commit(p fractal.Params, w, h int) (fractal.Params, bool) {
 	if bw < minBox || bh < minBox {
 		return p, false
 	}
-	cx, cy := p.PixelToPlane(x+bw/2, y+bh/2, w, h)
-	p.CenterX, p.CenterY = cx, cy
+	p = p.Recenter(x+bw/2, y+bh/2, w, h)
 	p.Scale *= bw / float64(w)
 	return p, true
 }

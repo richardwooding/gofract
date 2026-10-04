@@ -175,8 +175,8 @@ func (r *Renderer) renderBand(buf []float32, cancel *atomic.Bool, f fractal.Frac
 	buf = buf[:rows*w]
 	s := b.stride
 	unit := p.Unit(w)
-	x0 := p.CenterX + (-float64(w)/2+0.5)*unit
-	y0 := p.CenterY + (float64(h)/2-0.5)*unit
+	x0 := (-float64(w)/2 + 0.5) * unit
+	y0 := (float64(h)/2 - 0.5) * unit
 	maxIter := p.MaxIter
 	if maxIter < 1 {
 		maxIter = 1

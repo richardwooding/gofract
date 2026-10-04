@@ -42,8 +42,8 @@ func TestFinalPassMatchesDirectEvaluation(t *testing.T) {
 	m := mandel()
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
-			px, py := p.PixelToPlane(float64(x), float64(y), w, h)
-			want := m.Iterate(px, py, p.MaxIter)
+			dx, dy := p.PixelOffset(float64(x), float64(y), w, h)
+			want := m.Iterate(dx, dy, p.MaxIter)
 			if got := buf[y*w+x]; got != want {
 				t.Fatalf("(%d,%d) = %v, want %v", x, y, got, want)
 			}
@@ -67,8 +67,8 @@ func TestRestartAbandonsOldRender(t *testing.T) {
 	m := mandel()
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
-			px, py := q.PixelToPlane(float64(x), float64(y), w, h)
-			if got, want := buf[y*w+x], m.Iterate(px, py, q.MaxIter); got != want {
+			dx, dy := q.PixelOffset(float64(x), float64(y), w, h)
+			if got, want := buf[y*w+x], m.Iterate(dx, dy, q.MaxIter); got != want {
 				t.Fatalf("stale data at (%d,%d): %v want %v", x, y, got, want)
 			}
 		}

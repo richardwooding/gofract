@@ -1,13 +1,17 @@
 package fractal
 
 import (
+	"encoding/json"
 	"math"
 	"testing"
 )
 
-func mandel(t *testing.T) Fractal {
+// origin builds a fractal with the view centred on 0 so Iterate takes
+// absolute plane coordinates.
+func origin(t *testing.T, p Params) Fractal {
 	t.Helper()
-	f, err := New(Default())
+	p.CenterX, p.CenterY = "0", "0"
+	f, err := New(p)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -15,7 +19,7 @@ func mandel(t *testing.T) Fractal {
 }
 
 func TestMandelbrotKnownPoints(t *testing.T) {
-	m := mandel(t)
+	m := origin(t, Default())
 	if got := m.Iterate(0, 0, 100); got != Inside {
 		t.Errorf("origin should be inside, got %v", got)
 	}
@@ -41,7 +45,7 @@ func TestBulbCheckAgreesWithIteration(t *testing.T) {
 }
 
 func TestSmoothValueIsMonotonicNearBoundary(t *testing.T) {
-	m := mandel(t)
+	m := origin(t, Default())
 	prev := float32(math.Inf(1))
 	for x := 0.26; x < 2; x += 0.05 {
 		v := m.Iterate(x, 0, 500)
@@ -57,10 +61,7 @@ func TestJuliaMode(t *testing.T) {
 	if !p.Julia || p.Type != "mandelbrot" {
 		t.Fatalf("ToJulia gave %+v", p)
 	}
-	j, err := New(p)
-	if err != nil {
-		t.Fatal(err)
-	}
+	j := origin(t, p)
 	if got := j.Iterate(0.5, 0, 100); got != Inside {
 		t.Errorf("|z|<1 with c=0 should be inside, got %v", got)
 	}
@@ -68,7 +69,7 @@ func TestJuliaMode(t *testing.T) {
 		t.Errorf("|z|>1 with c=0 should escape, got %v", got)
 	}
 	back := p.ToMandelbrot()
-	if back.Julia || back.CenterX != 0 || back.Scale != 3.5 {
+	if back.Julia || back.CenterX.Float() != 0 || back.Scale != 3.5 {
 		t.Errorf("ToMandelbrot gave %+v", back)
 	}
 }
@@ -96,13 +97,11 @@ func TestEveryFamilyRendersSomething(t *testing.T) {
 		if f.Name() != name {
 			t.Errorf("New(%q).Name() = %q", name, f.Name())
 		}
-		// Sample a grid over the default view; expect a mix of inside and
-		// outside points so the picture is not blank.
 		inside, outside := 0, 0
 		for y := 0; y < 40; y++ {
 			for x := 0; x < 40; x++ {
-				px, py := p.PixelToPlane(float64(x), float64(y), 40, 40)
-				if f.Iterate(px, py, p.MaxIter) == Inside {
+				dx, dy := p.PixelOffset(float64(x), float64(y), 40, 40)
+				if f.Iterate(dx, dy, p.MaxIter) == Inside {
 					inside++
 				} else {
 					outside++
@@ -129,15 +128,13 @@ func TestEveryFamilyRendersSomething(t *testing.T) {
 }
 
 func TestNewtonRoots(t *testing.T) {
-	f, _ := New(Params{Type: "newton"})
-	// Starting on a root converges immediately into that root's band.
+	f := origin(t, Params{Type: "newton", Scale: 4})
 	v0 := f.Iterate(1, 0, 50)
 	v1 := f.Iterate(-0.5, newtonRootIm, 50)
 	v2 := f.Iterate(-0.5, -newtonRootIm, 50)
 	if v0 < 0 || v0 >= 1 || int(v1) != newtonBand || int(v2) != 2*newtonBand {
 		t.Errorf("root values %v %v %v", v0, v1, v2)
 	}
-	// The real axis right of the origin converges to root 1.
 	if v := f.Iterate(2, 0, 50); v < 1 || v >= newtonBand {
 		t.Errorf("2+0i -> %v, want root 1 band", v)
 	}
@@ -159,8 +156,9 @@ func TestPixelPlaneRoundTrip(t *testing.T) {
 		}
 	}
 	x, y := p.PixelToPlane(float64(w)/2-0.5, float64(h)/2-0.5, w, h)
-	if math.Abs(x-p.CenterX) > 1e-12 || math.Abs(y-p.CenterY) > 1e-12 {
-		t.Errorf("centre pixel -> (%v,%v), want (%v,%v)", x, y, p.CenterX, p.CenterY)
+	cx, cy := p.CenterF()
+	if math.Abs(x-cx) > 1e-12 || math.Abs(y-cy) > 1e-12 {
+		t.Errorf("centre pixel -> (%v,%v), want (%v,%v)", x, y, cx, cy)
 	}
 }
 
@@ -176,5 +174,126 @@ func TestZoomAtKeepsPointFixed(t *testing.T) {
 	}
 	if z.Scale != p.Scale/2 {
 		t.Errorf("scale = %v, want %v", z.Scale, p.Scale/2)
+	}
+}
+
+func TestDeepZoomKeepsPrecision(t *testing.T) {
+	// Zoom in 100 times by half at an off-centre pixel: the centre text must
+	// grow to hold the extra digits, and recentring on the centre pixel must
+	// be a no-op at full precision.
+	p := Default()
+	w, h := 800, 600
+	for i := 0; i < 100; i++ {
+		p = p.ZoomAt(0.5, 300, 200, w, h)
+	}
+	if p.Scale > 1e-29 || !p.Deep() {
+		t.Fatalf("scale %v after 100 halvings", p.Scale)
+	}
+	if len(p.CenterX) < 30 {
+		t.Errorf("centre lost digits: %q", p.CenterX)
+	}
+	q := p.Recenter(float64(w)/2-0.5, float64(h)/2-0.5, w, h)
+	if q.CenterX != p.CenterX || q.CenterY != p.CenterY {
+		t.Errorf("recentre on centre moved: %q -> %q", p.CenterX, q.CenterX)
+	}
+	// Panning right then left returns exactly.
+	r := p.Pan(0.25, 0, w, h).Pan(-0.25, 0, w, h)
+	if r.CenterX != p.CenterX {
+		t.Errorf("pan round trip %q -> %q", p.CenterX, r.CenterX)
+	}
+}
+
+func TestDecimalJSON(t *testing.T) {
+	var p Params
+	legacy := `{"type":"mandelbrot","center_x":-0.5,"center_y":0,"scale":3.5,"max_iter":256}`
+	if err := json.Unmarshal([]byte(legacy), &p); err != nil {
+		t.Fatal(err)
+	}
+	if p.CenterX != "-0.5" || p.CenterY != "0" {
+		t.Errorf("legacy centre %q %q", p.CenterX, p.CenterY)
+	}
+	p.CenterX = "-0.74364388703715138230"
+	out, err := json.Marshal(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var q Params
+	if err := json.Unmarshal(out, &q); err != nil {
+		t.Fatal(err)
+	}
+	if q != p {
+		t.Errorf("round trip %+v -> %+v", p, q)
+	}
+	if err := json.Unmarshal([]byte(`{"center_x":"abc"}`), &q); err == nil {
+		t.Error("expected error for non-numeric centre")
+	}
+}
+
+func TestPerturbationMatchesFloat64(t *testing.T) {
+	// At zooms where float64 is still accurate, perturbation must agree
+	// with the direct kernel pixel for pixel. The cardioid notch is almost
+	// all inside; the seahorse valley mixes both and exercises rebasing.
+	regions := []Params{
+		{Type: "mandelbrot", CenterX: "0.25", CenterY: "0", Scale: 1e-4, MaxIter: 2000},
+		{Type: "mandelbrot", CenterX: "-0.75", CenterY: "0.01", Scale: 1e-3, MaxIter: 2000},
+		{Type: "mandelbrot", CenterX: "-0.7435", CenterY: "0.1314", Scale: 1e-5, MaxIter: 2000},
+	}
+	totalInside, total := 0, 0
+	for ri, p := range regions {
+		direct, err := New(p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, ok := direct.(*mandelSet); !ok {
+			t.Fatalf("expected direct kernel at scale %v, got %T", p.Scale, direct)
+		}
+		pert := newPerturb(p)
+		w, h := 64, 48
+		mismatch, inside := 0, 0
+		for y := 0; y < h; y++ {
+			for x := 0; x < w; x++ {
+				dx, dy := p.PixelOffset(float64(x), float64(y), w, h)
+				a := direct.Iterate(dx, dy, p.MaxIter)
+				b := pert.Iterate(dx, dy, p.MaxIter)
+				if a == Inside {
+					inside++
+				}
+				if (a == Inside) != (b == Inside) || math.Abs(float64(a-b)) > 0.01 {
+					mismatch++
+				}
+			}
+		}
+		totalInside += inside
+		total += w * h
+		if mismatch > w*h/100 {
+			t.Errorf("region %d: %d of %d pixels differ between perturbation and direct", ri, mismatch, w*h)
+		}
+	}
+	if totalInside == 0 || totalInside == total {
+		t.Fatalf("bad test regions: %d inside of %d", totalInside, total)
+	}
+}
+
+func TestPerturbationDeep(t *testing.T) {
+	// A known deep location: the image must have structure, not blocks.
+	p := Params{Type: "mandelbrot", MaxIter: 20000, Scale: 1e-15,
+		CenterX: "-0.743643887037158704752191506114774", CenterY: "0.131825904205311970493132056385139"}
+	f, err := New(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := f.(*perturb); !ok {
+		t.Fatalf("expected perturbation renderer, got %T", f)
+	}
+	w, h := 32, 32
+	vals := map[int]int{}
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			dx, dy := p.PixelOffset(float64(x), float64(y), w, h)
+			vals[int(f.Iterate(dx, dy, p.MaxIter))]++
+		}
+	}
+	if len(vals) < 20 {
+		t.Errorf("only %d distinct values across %d pixels at scale %v", len(vals), w*h, p.Scale)
 	}
 }

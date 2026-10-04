@@ -12,6 +12,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 
+	"github.com/richardwooding/gofract/internal/fractal"
 	"github.com/richardwooding/gofract/internal/render"
 )
 
@@ -51,8 +52,16 @@ func (a *App) panel(dst *ebiten.Image, s string, x, y float64) (tx, ty float64) 
 func (a *App) drawStatus(dst *ebiten.Image) {
 	p := a.params
 	digits := int(math.Max(6, -math.Log10(p.Scale)+5))
+	cx, cy := p.CenterText(digits)
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s  centre %.*g %+.*gi  width %.4g  iter %d", p.Label(), digits, p.CenterX, digits, p.CenterY, p.Scale, p.MaxIter)
+	fmt.Fprintf(&b, "%s  centre %s %si  width %.4g  iter %d", p.Label(), cx, cy, p.Scale, p.MaxIter)
+	if p.Deep() {
+		if fractal.HasDeep(p) {
+			b.WriteString("  deep")
+		} else {
+			b.WriteString("  (beyond float64)")
+		}
+	}
 	if p.Julia {
 		fmt.Fprintf(&b, "  c=%.6g%+.6gi", p.JuliaRe, p.JuliaIm)
 	}

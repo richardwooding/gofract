@@ -4,7 +4,8 @@ A cross-platform fractal viewer in the spirit of the classic Fractint,
 written in Go on [Ebitengine](https://ebitengine.org).
 
 Hotkey driven, GPU shader rendering for shallow zooms with an automatic
-hand-off to a progressive CPU renderer when float32 runs out, palette cycling,
+hand-off to a progressive CPU renderer when float32 runs out, perturbation
+deep zoom for the Mandelbrot set past float64 limits, palette cycling,
 rubber-band zoom box, Fractint `.map` palettes. Families: Mandelbrot, Burning
 Ship, Tricorn, Multibrot (z^3), Newton (z^3 - 1), each escape-time family
 with its Julia variant.
@@ -69,6 +70,17 @@ Press `F1` in the viewer for the full key list. The essentials:
 
 `-shot file.png` renders one frame and exits, handy for scripting or for
 comparing the GPU and CPU paths.
+
+## Deep zoom
+
+The view centre is stored as decimal text at whatever precision the zoom
+needs, so panning and zooming never lose digits. Below a view width of 1e-8
+the Mandelbrot set switches to perturbation rendering: one reference orbit
+at the centre in arbitrary precision, each pixel iterating its float64 offset
+from it, with rebasing when a pixel drifts from the reference. Deep views
+need many more iterations; press `.` until the detail resolves. Other
+families fall back to plain float64 and pixelate past that depth, and the
+status line says so.
 
 ## Layout
 

@@ -92,6 +92,7 @@ func (g *gpu) draw(dst *ebiten.Image, p fractal.Params, pal *palette.Palette, of
 	g.vertices[2].DstX, g.vertices[2].DstY = 0, fh
 	g.vertices[3].DstX, g.vertices[3].DstY = fw, fh
 
+	cx, cy := p.CenterF()
 	julia := 0.0
 	if p.Julia {
 		julia = 1
@@ -99,7 +100,7 @@ func (g *gpu) draw(dst *ebiten.Image, p fractal.Params, pal *palette.Palette, of
 	op := &ebiten.DrawTrianglesShaderOptions{}
 	op.Images[0] = g.pal
 	op.Uniforms = map[string]any{
-		"Center":    []float32{float32(p.CenterX), float32(p.CenterY)},
+		"Center":    []float32{float32(cx), float32(cy)},
 		"Unit":      float32(p.Unit(w)),
 		"Size":      []float32{fw, fh},
 		"MaxIter":   float32(p.MaxIter),

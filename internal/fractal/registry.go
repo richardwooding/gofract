@@ -21,7 +21,7 @@ type family struct {
 
 func (f *family) start() Params {
 	return Params{
-		Type: f.name, CenterX: f.cx, CenterY: f.cy, Scale: f.scale,
+		Type: f.name, CenterX: Dec(f.cx), CenterY: Dec(f.cy), Scale: f.scale,
 		MaxIter: 256, JuliaRe: f.jre, JuliaIm: f.jim,
 	}
 }
@@ -86,24 +86,33 @@ func New(p Params) (Fractal, error) {
 	if err != nil {
 		return nil, err
 	}
+	cx, cy := p.CenterF()
 	if p.Julia {
 		if !f.hasJulia {
 			return nil, fmt.Errorf("fractal: %s has no Julia variant", f.name)
 		}
-		return &juliaSet{name: f.name, k: f.k, cr: p.JuliaRe, ci: p.JuliaIm}, nil
+		return &juliaSet{name: f.name, k: f.k, cx: cx, cy: cy, cr: p.JuliaRe, ci: p.JuliaIm}, nil
 	}
-	return &mandelSet{name: f.name, k: f.k, shortcut: f.shortcut}, nil
+	if p.Deep() && f.name == "mandelbrot" {
+		return newPerturb(p), nil
+	}
+	return &mandelSet{name: f.name, k: f.k, cx: cx, cy: cy, shortcut: f.shortcut}, nil
 }
+
+// HasDeep reports whether the family can render below float64 precision.
+func HasDeep(p Params) bool { return p.Type == "mandelbrot" && !p.Julia }
 
 type mandelSet struct {
 	name     string
 	k        kernel
+	cx, cy   float64
 	shortcut func(x, y float64) bool
 }
 
 func (m *mandelSet) Name() string { return m.name }
 
-func (m *mandelSet) Iterate(x, y float64, maxIter int) float32 {
+func (m *mandelSet) Iterate(dx, dy float64, maxIter int) float32 {
+	x, y := m.cx+dx, m.cy+dy
 	if m.shortcut != nil && m.shortcut(x, y) {
 		return Inside
 	}
@@ -113,13 +122,14 @@ func (m *mandelSet) Iterate(x, y float64, maxIter int) float32 {
 type juliaSet struct {
 	name   string
 	k      kernel
+	cx, cy float64
 	cr, ci float64
 }
 
 func (j *juliaSet) Name() string { return j.name }
 
-func (j *juliaSet) Iterate(x, y float64, maxIter int) float32 {
-	return j.k(x, y, j.cr, j.ci, maxIter)
+func (j *juliaSet) Iterate(dx, dy float64, maxIter int) float32 {
+	return j.k(j.cx+dx, j.cy+dy, j.cr, j.ci, maxIter)
 }
 
 // ToJulia switches to Julia mode with the given plane point as the constant,
@@ -132,7 +142,7 @@ func (p Params) ToJulia(cx, cy float64) Params {
 	}
 	p.Julia = true
 	p.JuliaRe, p.JuliaIm = cx, cy
-	p.CenterX, p.CenterY, p.Scale = f.jcx, f.jcy, f.jscale
+	p.CenterX, p.CenterY, p.Scale = Dec(f.jcx), Dec(f.jcy), f.jscale
 	return p
 }
 
@@ -144,7 +154,7 @@ func (p Params) ToMandelbrot() Params {
 		return p
 	}
 	p.Julia = false
-	p.CenterX, p.CenterY, p.Scale = p.JuliaRe, p.JuliaIm, f.scale
+	p.CenterX, p.CenterY, p.Scale = Dec(p.JuliaRe), Dec(p.JuliaIm), f.scale
 	return p
 }
 
