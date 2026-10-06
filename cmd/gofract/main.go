@@ -25,6 +25,7 @@ func main() {
 		workers = flag.Int("workers", 0, "render goroutines (0 = number of CPUs)")
 		load    = flag.String("load", "", "JSON sidecar written by S to reopen a view")
 		mapFile = flag.String("map", "", "Fractint .map palette to start with")
+		palName = flag.String("palette", "", "preset palette to start with: classic, fire, ocean, grey or rainbow")
 		saveDir = flag.String("out", "", "directory for saved images (default: current directory)")
 		typ     = flag.String("type", "", "fractal type to start with (see -list)")
 		list    = flag.Bool("list", false, "print the fractal types and exit")
@@ -64,6 +65,7 @@ func main() {
 		}
 		cfg.Params = sc.Params
 		cfg.Density = sc.Density
+		cfg.PalName = sc.Palette
 	}
 	if *typ != "" {
 		p, err := fractal.Start(*typ)
@@ -74,6 +76,9 @@ func main() {
 	}
 	if *iter > 0 {
 		cfg.Params.MaxIter = *iter
+	}
+	if *palName != "" {
+		cfg.PalName = *palName
 	}
 	if *mapFile != "" {
 		pal, err := palette.Load(*mapFile)

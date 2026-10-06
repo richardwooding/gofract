@@ -10,6 +10,26 @@ rubber-band zoom box, Fractint `.map` palettes. Families: Mandelbrot, Burning
 Ship, Tricorn, Multibrot (z^3), Newton (z^3 - 1), each escape-time family
 with its Julia variant.
 
+![Mandelbrot set in the classic palette](docs/screenshots/mandelbrot.png)
+
+## Screenshots
+
+Every image below was rendered headlessly with `-shot`, and the sidecar next
+to each one in `docs/screenshots/` reopens the exact view with `-load`.
+
+| | |
+|---|---|
+| ![Seahorse valley at a view width of 1e-15](docs/screenshots/seahorse-deep.png) | ![Julia set for c = -0.8 + 0.156i](docs/screenshots/julia-classic.png) |
+| Seahorse valley, view width 1e-15, perturbation rendering with 20,000 iterations | Julia set for c = -0.8 + 0.156i in the fire palette |
+| ![Burning Ship](docs/screenshots/burningship.png) | ![Douady rabbit](docs/screenshots/rabbit.png) |
+| Burning Ship | Douady rabbit, Julia set for c = -0.123 + 0.745i |
+| ![Tricorn](docs/screenshots/tricorn.png) | ![Newton fractal](docs/screenshots/newton.png) |
+| Tricorn | Newton's method on z^3 - 1, coloured by root |
+
+Reproduce any of them, for example:
+
+    gofract -load docs/screenshots/seahorse-deep.json
+
 ## Install
 
 Prebuilt binaries for Linux (amd64, arm64), macOS (universal) and Windows
@@ -58,7 +78,7 @@ The binary runs on the host.
 ## Use
 
     gofract [-width 1024] [-height 768] [-type burningship] [-iter 1024]
-            [-gpu auto|off|on] [-shot frame.png] [-list]
+            [-palette fire] [-gpu auto|off|on] [-shot frame.png] [-list]
             [-map palette.map] [-load view.json] [-out dir] [-workers n]
 
 Press `F1` in the viewer for the full key list. The essentials:

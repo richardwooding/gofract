@@ -30,6 +30,7 @@ const (
 type Config struct {
 	Params  fractal.Params
 	Palette *palette.Palette // optional extra palette, selected at start
+	PalName string           // preset to start with, by name (ignored if unknown)
 	Workers int
 	Density float64  // palette steps per iteration; 0 means 1
 	SaveDir string   // where S writes PNG + JSON; "" means current directory
@@ -116,6 +117,11 @@ func New(cfg Config) (*App, error) {
 	}
 	if cfg.Palette != nil {
 		a.palettes = append([]*palette.Palette{cfg.Palette}, a.palettes...)
+	}
+	for i, p := range a.palettes {
+		if p.Name == cfg.PalName {
+			a.palIdx = i
+		}
 	}
 	return a, nil
 }
