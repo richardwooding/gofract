@@ -36,7 +36,7 @@ jobs:
         run: |
           mkdir -p dist/gofract
           go build -trimpath -ldflags "$LDFLAGS" -o dist/gofract/gofract ./cmd/gofract
-          cp README.md dist/gofract/
+          cp README.md LICENSE dist/gofract/
           tar -C dist -czf gofract_${{ github.ref_name }}_linux_${{ matrix.arch }}.tar.gz gofract
       - uses: actions/upload-artifact@v4
         with:
@@ -59,7 +59,7 @@ jobs:
             rm -rf dist && mkdir -p dist/gofract
             GOOS=windows GOARCH=$arch CGO_ENABLED=0 \
               go build -trimpath -ldflags "$LDFLAGS" -o dist/gofract/gofract.exe ./cmd/gofract
-            cp README.md dist/gofract/
+            cp README.md LICENSE dist/gofract/
             (cd dist && zip -qr ../gofract_${{ github.ref_name }}_windows_$arch.zip gofract)
           done
       - uses: actions/upload-artifact@v4
@@ -82,7 +82,7 @@ jobs:
           CGO_ENABLED=1 GOARCH=amd64 go build -trimpath -ldflags "$LDFLAGS" -o gofract_amd64 ./cmd/gofract
           lipo -create -output dist/gofract/gofract gofract_arm64 gofract_amd64
           lipo -info dist/gofract/gofract
-          cp README.md dist/gofract/
+          cp README.md LICENSE dist/gofract/
           tar -C dist -czf gofract_${{ github.ref_name }}_darwin_universal.tar.gz gofract
       - uses: actions/upload-artifact@v4
         with:

@@ -108,3 +108,7 @@ float64 and pixelates past that depth, and the status line says so.
 
     go test ./...
     go test -bench . -run xxx ./internal/render/
+
+## License
+
+MIT, see [LICENSE](LICENSE).
