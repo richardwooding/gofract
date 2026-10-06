@@ -32,11 +32,24 @@ Reproduce any of them, for example:
 
 ## Install
 
-Prebuilt binaries for Linux (amd64, arm64), macOS (universal) and Windows
-(amd64, arm64) are attached to each
-[GitHub release](https://github.com/richardwooding/gofract/releases). Unpack
-and run `gofract`; nothing else is needed. macOS may ask you to allow the
-unsigned binary in System Settings > Privacy & Security the first time.
+Every [GitHub release](https://github.com/richardwooding/gofract/releases)
+carries prebuilt packages for Linux (amd64, arm64), macOS (universal) and
+Windows (amd64, arm64):
+
+| File | Install |
+|---|---|
+| `gofract_<ver>_linux_<arch>.tar.gz` | unpack and run `gofract` |
+| `gofract_<ver>_linux_<arch>.deb` | `sudo apt install ./gofract_<ver>_linux_<arch>.deb` |
+| `gofract_<ver>_linux_<arch>.rpm` | `sudo dnf install ./gofract_<ver>_linux_<arch>.rpm` |
+| `gofract_<ver>_<arch>.flatpak` | `flatpak install gofract_<ver>_<arch>.flatpak` (needs the Flathub remote for the runtime) |
+| `gofract_<ver>_<arch>.snap` | `sudo snap install --dangerous gofract_<ver>_<arch>.snap` |
+| `gofract_<ver>_darwin_universal.tar.gz` | unpack and run; allow the unsigned binary under Privacy & Security on first launch |
+| `gofract_<ver>_windows_<arch>.zip` | unpack and run `gofract.exe` |
+
+The deb, rpm, Flatpak and Snap packages add a desktop entry and icon. The
+Flatpak and Snap are not yet published to Flathub or the Snap Store, so they
+install as sideloaded bundles; `--dangerous` tells snapd the file is unsigned.
+Packaging sources live in `packaging/` and `snap/`.
 
 To cut a release, push a tag: `git tag v0.2.0 && git push origin v0.2.0`. The
 release workflow builds every platform and attaches the archives with a
@@ -118,6 +131,10 @@ float64 and pixelates past that depth, and the status line says so.
 ## Layout
 
     cmd/gofract        entry point and flags
+    tools/mkicon       renders the application icon into assets/
+    assets/            icon, desktop entry and AppStream metainfo
+    packaging/         nfpm (deb/rpm) config and Flatpak manifest
+    snap/              snapcraft.yaml
     internal/fractal   Params (view maths) and the escape-time kernels
     internal/render    progressive tiled renderer on a goroutine pool
     internal/palette   256-colour palettes, presets, .map load/save

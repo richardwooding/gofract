@@ -3,3 +3,12 @@
 /bin/
 gofract-*.png
 gofract-*.json
+/vendor/
+/dist/
+/VERSION
+/build-dir/
+/.flatpak-builder/
+*.flatpak
+*.snap
+*.deb
+*.rpm

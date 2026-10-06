@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.richardwooding.gofract</id>
+  <name>gofract</name>
+  <summary>Fractint-style fractal viewer</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="io.github.richardwooding">
+    <name>Richard Wooding</name>
+  </developer>
+  <description>
+    <p>
+      A cross-platform fractal viewer in the spirit of the classic Fractint.
+      Hotkey driven, with a rubber-band zoom box, palette cycling and Fractint
+      .map palettes.
+    </p>
+    <p>
+      Shallow views render instantly on the GPU; a progressive CPU renderer
+      takes over past float32 precision, and perturbation rendering with an
+      arbitrary-precision centre keeps zooming far beyond float64. Families
+      include the Mandelbrot set, Burning Ship, Tricorn, Multibrot and Newton,
+      each escape-time family with its Julia variant.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.github.richardwooding.gofract.desktop</launchable>
+  <url type="homepage">https://github.com/richardwooding/gofract</url>
+  <url type="bugtracker">https://github.com/richardwooding/gofract/issues</url>
+  <url type="vcs-browser">https://github.com/richardwooding/gofract</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>The Mandelbrot set in the classic palette</caption>
+      <image>https://raw.githubusercontent.com/richardwooding/gofract/main/docs/screenshots/mandelbrot.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Seahorse valley at a view width of 1e-15</caption>
+      <image>https://raw.githubusercontent.com/richardwooding/gofract/main/docs/screenshots/seahorse-deep.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Julia set for c = -0.8 + 0.156i</caption>
+      <image>https://raw.githubusercontent.com/richardwooding/gofract/main/docs/screenshots/julia-classic.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <keywords>
+    <keyword>fractal</keyword>
+    <keyword>mandelbrot</keyword>
+    <keyword>julia</keyword>
+    <keyword>fractint</keyword>
+  </keywords>
+  <releases>
+    <release version="0.1.1" date="2026-10-06"/>
+    <release version="0.1.0" date="2026-10-06"/>
+  </releases>
+</component>

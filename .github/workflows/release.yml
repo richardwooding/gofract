@@ -3,6 +3,8 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  # Manual runs build every package without publishing, to test the matrix.
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -38,10 +40,23 @@ jobs:
           go build -trimpath -ldflags "$LDFLAGS" -o dist/gofract/gofract ./cmd/gofract
           cp README.md LICENSE dist/gofract/
           tar -C dist -czf gofract_${{ github.ref_name }}_linux_${{ matrix.arch }}.tar.gz gofract
+      - name: Package deb and rpm
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: |
+          go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
+          export VERSION="${GITHUB_REF_NAME#v}"
+          for fmt in deb rpm; do
+            nfpm package -f packaging/nfpm.yaml -p $fmt -t .
+          done
+          ls -1 *.deb *.rpm
       - uses: actions/upload-artifact@v4
         with:
           name: linux-${{ matrix.arch }}
-          path: gofract_*.tar.gz
+          path: |
+            gofract_*.tar.gz
+            *.deb
+            *.rpm
 
   windows:
     # Ebitengine hides the console itself when launched from Explorer, so
@@ -89,9 +104,67 @@ jobs:
           name: macos
           path: gofract_*.tar.gz
 
+  flatpak:
+    name: Flatpak ${{ matrix.arch }}
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-24.08
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Vendor modules so the sandboxed build needs no network
+        run: |
+          echo "${GITHUB_REF_NAME}" > VERSION
+          go mod vendor
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: gofract_${{ github.ref_name }}_${{ matrix.arch }}.flatpak
+          manifest-path: packaging/flatpak/io.github.richardwooding.gofract.yml
+          arch: ${{ matrix.arch }}
+          cache: false
+          upload-artifact: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flatpak-${{ matrix.arch }}
+          path: gofract_*.flatpak
+
+  snap:
+    name: Snap ${{ matrix.arch }}
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # snapcraft.yaml derives the version from git describe
+      - uses: snapcore/action-build@v1
+        id: snap
+      - name: Rename
+        run: mv "${{ steps.snap.outputs.snap }}" gofract_${{ github.ref_name }}_${{ matrix.arch }}.snap
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snap-${{ matrix.arch }}
+          path: gofract_*.snap
+
   release:
     name: Publish release
-    needs: [linux, windows, macos]
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [linux, windows, macos, flatpak, snap]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -101,7 +174,7 @@ jobs:
       - name: Checksums
         run: |
           cd artifacts
-          sha256sum gofract_* > SHA256SUMS
+          sha256sum gofract_* *.deb *.rpm > SHA256SUMS
           cat SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:

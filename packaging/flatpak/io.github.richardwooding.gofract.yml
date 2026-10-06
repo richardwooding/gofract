@@ -1,0 +1,52 @@
+# Flatpak manifest. The release workflow vendors Go modules first so the
+# build needs no network; the Go toolchain itself comes from the official
+# tarball below. Build locally from the repo root with:
+#   go mod vendor
+#   flatpak-builder --user --install --force-clean build-dir packaging/flatpak/io.github.richardwooding.gofract.yml
+app-id: io.github.richardwooding.gofract
+runtime: org.freedesktop.Platform
+runtime-version: "24.08"
+sdk: org.freedesktop.Sdk
+command: gofract
+finish-args:
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  # Saved images and -load files live wherever the user runs gofract.
+  - --filesystem=home
+build-options:
+  env:
+    GOFLAGS: -mod=vendor -trimpath
+    GOTOOLCHAIN: local
+modules:
+  - name: go
+    buildsystem: simple
+    build-commands:
+      - install -d /app/go
+      - cp -r . /app/go
+    cleanup:
+      - "*"
+    sources:
+      - type: archive
+        only-arches: [x86_64]
+        url: https://go.dev/dl/go1.27.1.linux-amd64.tar.gz
+        sha256: 63d339f0da5ab53635a56f2490a7984dfe12dfcff22ad749f63edaf590168445
+      - type: archive
+        only-arches: [aarch64]
+        url: https://go.dev/dl/go1.27.1.linux-arm64.tar.gz
+        sha256: 3450b45a3f9ee8568792736a5c5e70a1f2e9b36c35a8f74958c03e51d7d92bec
+  - name: gofract
+    buildsystem: simple
+    build-options:
+      env:
+        GOPATH: /run/build/gofract/.gopath
+        GOCACHE: /run/build/gofract/.gocache
+    build-commands:
+      - /app/go/bin/go build -ldflags "-s -w -X main.version=$(cat VERSION 2>/dev/null || echo flatpak)" -o /app/bin/gofract ./cmd/gofract
+      - install -Dm644 assets/io.github.richardwooding.gofract.desktop /app/share/applications/io.github.richardwooding.gofract.desktop
+      - install -Dm644 assets/io.github.richardwooding.gofract.metainfo.xml /app/share/metainfo/io.github.richardwooding.gofract.metainfo.xml
+      - for s in 512 256 128 64 48 32; do install -Dm644 assets/icon-$s.png /app/share/icons/hicolor/${s}x${s}/apps/io.github.richardwooding.gofract.png; done
+    sources:
+      - type: dir
+        path: ../..

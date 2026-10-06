@@ -1,0 +1,54 @@
+# nfpm configuration for .deb and .rpm packages. Built by the release
+# workflow with VERSION and ARCH set; locally:
+#   VERSION=0.0.0 ARCH=amd64 nfpm package -f packaging/nfpm.yaml -p deb
+name: gofract
+arch: ${ARCH}
+platform: linux
+version: ${VERSION}
+section: graphics
+priority: optional
+maintainer: Richard Wooding <richard.wooding@gmail.com>
+description: |
+  Fractint-style fractal viewer
+  Hotkey-driven viewer for the Mandelbrot set, Burning Ship, Tricorn,
+  Multibrot and Newton fractals and their Julia sets, with GPU rendering,
+  palette cycling and arbitrary-precision deep zoom.
+vendor: Richard Wooding
+homepage: https://github.com/richardwooding/gofract
+license: MIT
+contents:
+  - src: ./dist/gofract/gofract
+    dst: /usr/bin/gofract
+  - src: ./assets/io.github.richardwooding.gofract.desktop
+    dst: /usr/share/applications/io.github.richardwooding.gofract.desktop
+  - src: ./assets/io.github.richardwooding.gofract.metainfo.xml
+    dst: /usr/share/metainfo/io.github.richardwooding.gofract.metainfo.xml
+  - src: ./assets/icon-512.png
+    dst: /usr/share/icons/hicolor/512x512/apps/io.github.richardwooding.gofract.png
+  - src: ./assets/icon-256.png
+    dst: /usr/share/icons/hicolor/256x256/apps/io.github.richardwooding.gofract.png
+  - src: ./assets/icon-128.png
+    dst: /usr/share/icons/hicolor/128x128/apps/io.github.richardwooding.gofract.png
+  - src: ./assets/icon-64.png
+    dst: /usr/share/icons/hicolor/64x64/apps/io.github.richardwooding.gofract.png
+  - src: ./assets/icon-48.png
+    dst: /usr/share/icons/hicolor/48x48/apps/io.github.richardwooding.gofract.png
+  - src: ./assets/icon-32.png
+    dst: /usr/share/icons/hicolor/32x32/apps/io.github.richardwooding.gofract.png
+  - src: ./LICENSE
+    dst: /usr/share/doc/gofract/LICENSE
+  - src: ./README.md
+    dst: /usr/share/doc/gofract/README.md
+overrides:
+  deb:
+    depends:
+      - libc6
+    recommends:
+      - libgl1
+      - libegl1
+  rpm:
+    depends:
+      - glibc
+    recommends:
+      - mesa-libGL
+      - mesa-libEGL

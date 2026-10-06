@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=gofract
+GenericName=Fractal Viewer
+Comment=Explore the Mandelbrot set and friends, Fractint style
+Exec=gofract
+Icon=io.github.richardwooding.gofract
+Terminal=false
+Categories=Graphics;Math;
+Keywords=fractal;mandelbrot;julia;fractint;
+StartupNotify=false

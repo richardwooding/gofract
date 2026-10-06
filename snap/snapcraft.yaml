@@ -1,0 +1,54 @@
+name: gofract
+title: gofract
+summary: Fractint-style fractal viewer
+description: |
+  A cross-platform fractal viewer in the spirit of the classic Fractint.
+  Hotkey driven, with a rubber-band zoom box, palette cycling and Fractint
+  .map palettes. Shallow views render on the GPU; a progressive CPU renderer
+  takes over past float32 precision, and perturbation rendering keeps zooming
+  far beyond float64. Families include the Mandelbrot set, Burning Ship,
+  Tricorn, Multibrot and Newton, each escape-time family with its Julia
+  variant.
+website: https://github.com/richardwooding/gofract
+source-code: https://github.com/richardwooding/gofract
+issues: https://github.com/richardwooding/gofract/issues
+license: MIT
+icon: assets/icon-256.png
+adopt-info: gofract
+
+base: core24
+confinement: strict
+grade: stable
+platforms:
+  amd64:
+  arm64:
+
+apps:
+  gofract:
+    command: bin/gofract
+    extensions: [gnome]
+    desktop: usr/share/applications/io.github.richardwooding.gofract.desktop
+    plugs:
+      - opengl
+      - home
+      - removable-media
+
+parts:
+  gofract:
+    plugin: nil
+    source: .
+    build-snaps:
+      - go/latest/stable
+    build-environment:
+      - GOTOOLCHAIN: auto
+      - GOFLAGS: -trimpath
+    override-pull: |
+      craftctl default
+      VERSION=$(git describe --tags --always 2>/dev/null | sed 's/^v//')
+      craftctl set version="${VERSION:-0.0.0}"
+    override-build: |
+      VERSION=$(craftctl get version)
+      go build -ldflags "-s -w -X main.version=v${VERSION}" -o "$CRAFT_PART_INSTALL/bin/gofract" ./cmd/gofract
+      install -Dm644 assets/io.github.richardwooding.gofract.desktop "$CRAFT_PART_INSTALL/usr/share/applications/io.github.richardwooding.gofract.desktop"
+      install -Dm644 assets/icon-256.png "$CRAFT_PART_INSTALL/usr/share/icons/hicolor/256x256/apps/io.github.richardwooding.gofract.png"
+      sed -i 's|^Icon=.*|Icon=${SNAP}/usr/share/icons/hicolor/256x256/apps/io.github.richardwooding.gofract.png|' "$CRAFT_PART_INSTALL/usr/share/applications/io.github.richardwooding.gofract.desktop"
