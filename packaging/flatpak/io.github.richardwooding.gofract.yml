@@ -5,7 +5,7 @@
 #   flatpak-builder --user --install --force-clean build-dir packaging/flatpak/io.github.richardwooding.gofract.yml
 app-id: io.github.richardwooding.gofract
 runtime: org.freedesktop.Platform
-runtime-version: "24.08"
+runtime-version: "25.08"
 sdk: org.freedesktop.Sdk
 command: gofract
 finish-args:
