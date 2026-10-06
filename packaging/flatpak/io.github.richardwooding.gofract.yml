@@ -10,7 +10,9 @@ sdk: org.freedesktop.Sdk
 command: gofract
 finish-args:
   - --share=ipc
-  - --socket=fallback-x11
+  # Ebitengine opens an X11 (XWayland) window on Linux, so X11 must be
+  # granted even when a Wayland session is running.
+  - --socket=x11
   - --socket=wayland
   - --device=dri
   # Saved images and -load files live wherever the user runs gofract.
