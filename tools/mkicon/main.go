@@ -25,6 +25,9 @@ func main() {
 		log.Fatal("usage: mkicon OUTDIR")
 	}
 	dir := os.Args[1]
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		log.Fatal(err)
+	}
 	const base = 1024
 	src := render(base)
 	for _, size := range []int{512, 256, 128, 64, 48, 32} {
