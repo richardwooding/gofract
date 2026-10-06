@@ -15,6 +15,9 @@ import (
 	"github.com/richardwooding/gofract/internal/ui"
 )
 
+// version is set by the release workflow via -ldflags "-X main.version=...".
+var version = "dev"
+
 func main() {
 	var (
 		width   = flag.Int("width", 1024, "initial window width")
@@ -28,12 +31,17 @@ func main() {
 		iter    = flag.Int("iter", 0, "max iterations (default 256)")
 		gpu     = flag.String("gpu", "auto", "shader rendering: auto, off or on")
 		shot    = flag.String("shot", "", "render one frame to this PNG file and exit")
+		showVer = flag.Bool("version", false, "print the version and exit")
 	)
 	flag.Usage = func() {
 		fmt.Fprintf(flag.CommandLine.Output(), "usage: gofract [flags]\n\nPress F1 in the viewer for the key reference.\n\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+	if *showVer {
+		fmt.Println("gofract", version)
+		return
+	}
 	if *list {
 		for _, n := range fractal.Names() {
 			fmt.Println(n)

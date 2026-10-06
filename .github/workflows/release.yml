@@ -1,0 +1,110 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+env:
+  LDFLAGS: -s -w -X main.version=${{ github.ref_name }}
+
+jobs:
+  linux:
+    name: Linux ${{ matrix.arch }}
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Install Ebitengine build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc pkg-config libgl1-mesa-dev libgles2-mesa-dev \
+            libx11-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev \
+            libxxf86vm-dev libxkbcommon-dev libwayland-dev libasound2-dev
+      - name: Build
+        run: |
+          mkdir -p dist/gofract
+          go build -trimpath -ldflags "$LDFLAGS" -o dist/gofract/gofract ./cmd/gofract
+          cp README.md dist/gofract/
+          tar -C dist -czf gofract_${{ github.ref_name }}_linux_${{ matrix.arch }}.tar.gz gofract
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.arch }}
+          path: gofract_*.tar.gz
+
+  windows:
+    # Ebitengine hides the console itself when launched from Explorer, so
+    # the binary keeps stdout for -list and -version.
+    name: Windows (cross-built, no cgo)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build amd64 and arm64
+        run: |
+          for arch in amd64 arm64; do
+            rm -rf dist && mkdir -p dist/gofract
+            GOOS=windows GOARCH=$arch CGO_ENABLED=0 \
+              go build -trimpath -ldflags "$LDFLAGS" -o dist/gofract/gofract.exe ./cmd/gofract
+            cp README.md dist/gofract/
+            (cd dist && zip -qr ../gofract_${{ github.ref_name }}_windows_$arch.zip gofract)
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: gofract_*.zip
+
+  macos:
+    name: macOS universal
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Build arm64 and amd64, then lipo
+        run: |
+          mkdir -p dist/gofract
+          CGO_ENABLED=1 GOARCH=arm64 go build -trimpath -ldflags "$LDFLAGS" -o gofract_arm64 ./cmd/gofract
+          CGO_ENABLED=1 GOARCH=amd64 go build -trimpath -ldflags "$LDFLAGS" -o gofract_amd64 ./cmd/gofract
+          lipo -create -output dist/gofract/gofract gofract_arm64 gofract_amd64
+          lipo -info dist/gofract/gofract
+          cp README.md dist/gofract/
+          tar -C dist -czf gofract_${{ github.ref_name }}_darwin_universal.tar.gz gofract
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos
+          path: gofract_*.tar.gz
+
+  release:
+    name: Publish release
+    needs: [linux, windows, macos]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+      - name: Checksums
+        run: |
+          cd artifacts
+          sha256sum gofract_* > SHA256SUMS
+          cat SHA256SUMS
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, '-') }}

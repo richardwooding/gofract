@@ -10,7 +10,19 @@ rubber-band zoom box, Fractint `.map` palettes. Families: Mandelbrot, Burning
 Ship, Tricorn, Multibrot (z^3), Newton (z^3 - 1), each escape-time family
 with its Julia variant.
 
-## Build
+## Install
+
+Prebuilt binaries for Linux (amd64, arm64), macOS (universal) and Windows
+(amd64, arm64) are attached to each
+[GitHub release](https://github.com/richardwooding/gofract/releases). Unpack
+and run `gofract`; nothing else is needed. macOS may ask you to allow the
+unsigned binary in System Settings > Privacy & Security the first time.
+
+To cut a release, push a tag: `git tag v0.2.0 && git push origin v0.2.0`. The
+release workflow builds every platform and attaches the archives with a
+checksum file.
+
+## Build from source
 
 Requires Go 1.27 and, on Linux and macOS, a C compiler because Ebitengine
 uses cgo there. Windows needs no C toolchain.
