@@ -47,7 +47,7 @@ jobs:
           go install github.com/goreleaser/nfpm/v2/cmd/nfpm@latest
           export VERSION="${GITHUB_REF_NAME#v}"
           for fmt in deb rpm; do
-            nfpm package -f packaging/nfpm.yaml -p $fmt -t .
+            nfpm package -f packaging/nfpm.yaml -p $fmt -t gofract_${GITHUB_REF_NAME}_linux_${ARCH}.$fmt
           done
           ls -1 *.deb *.rpm
       - uses: actions/upload-artifact@v4
@@ -110,8 +110,10 @@ jobs:
       matrix:
         include:
           - arch: x86_64
+            goarch: amd64
             runner: ubuntu-latest
           - arch: aarch64
+            goarch: arm64
             runner: ubuntu-24.04-arm
     runs-on: ${{ matrix.runner }}
     container:
@@ -128,7 +130,7 @@ jobs:
           go mod vendor
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
-          bundle: gofract_${{ github.ref_name }}_${{ matrix.arch }}.flatpak
+          bundle: gofract_${{ github.ref_name }}_linux_${{ matrix.goarch }}.flatpak
           manifest-path: packaging/flatpak/io.github.richardwooding.gofract.yml
           arch: ${{ matrix.arch }}
           cache: false
@@ -157,7 +159,7 @@ jobs:
       - name: Install and launch under confinement
         run: packaging/test-snap.sh "${{ steps.snap.outputs.snap }}"
       - name: Rename
-        run: mv "${{ steps.snap.outputs.snap }}" gofract_${{ github.ref_name }}_${{ matrix.arch }}.snap
+        run: mv "${{ steps.snap.outputs.snap }}" gofract_${{ github.ref_name }}_linux_${{ matrix.arch }}.snap
       - uses: actions/upload-artifact@v4
         with:
           name: snap-${{ matrix.arch }}
@@ -176,7 +178,7 @@ jobs:
       - name: Checksums
         run: |
           cd artifacts
-          sha256sum gofract_* *.deb *.rpm > SHA256SUMS
+          sha256sum gofract_* > SHA256SUMS
           cat SHA256SUMS
       - uses: softprops/action-gh-release@v2
         with:

@@ -34,15 +34,15 @@ Reproduce any of them, for example:
 
 Every [GitHub release](https://github.com/richardwooding/gofract/releases)
 carries prebuilt packages for Linux (amd64, arm64), macOS (universal) and
-Windows (amd64, arm64):
+Windows (amd64, arm64), all named `gofract_<ver>_<os>_<arch>.<ext>`:
 
 | File | Install |
 |---|---|
 | `gofract_<ver>_linux_<arch>.tar.gz` | unpack and run `gofract` |
 | `gofract_<ver>_linux_<arch>.deb` | `sudo apt install ./gofract_<ver>_linux_<arch>.deb` |
 | `gofract_<ver>_linux_<arch>.rpm` | `sudo dnf install ./gofract_<ver>_linux_<arch>.rpm` |
-| `gofract_<ver>_<arch>.flatpak` | `flatpak install gofract_<ver>_<arch>.flatpak` (needs the Flathub remote for the runtime) |
-| `gofract_<ver>_<arch>.snap` | `sudo snap install --dangerous gofract_<ver>_<arch>.snap` |
+| `gofract_<ver>_linux_<arch>.flatpak` | `flatpak install gofract_<ver>_linux_<arch>.flatpak` (needs the Flathub remote for the runtime) |
+| `gofract_<ver>_linux_<arch>.snap` | `sudo snap install --dangerous gofract_<ver>_linux_<arch>.snap` |
 | `gofract_<ver>_darwin_universal.tar.gz` | unpack and run; allow the unsigned binary under Privacy & Security on first launch |
 | `gofract_<ver>_windows_<arch>.zip` | unpack and run `gofract.exe` |
 
