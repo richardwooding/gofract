@@ -43,7 +43,8 @@ jobs:
           mkdir -p dist/gofract && cp gofract dist/gofract/
           nfpm package -f packaging/nfpm.yaml -p deb -t .
           nfpm package -f packaging/nfpm.yaml -p rpm -t .
-          dpkg-deb -c gofract_*.deb | grep -q usr/bin/gofract
+          dpkg-deb -c gofract_*.deb > deb-contents.txt
+          grep -q usr/bin/gofract deb-contents.txt
           sudo dpkg -i gofract_*.deb && gofract -version && gofract -list
       - name: Icon generator stays in sync
         run: |
