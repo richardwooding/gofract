@@ -134,7 +134,7 @@ float64 and pixelates past that depth, and the status line says so.
     tools/mkicon       renders the application icon into assets/
     assets/            icon, desktop entry and AppStream metainfo
     packaging/         nfpm (deb/rpm) config and Flatpak manifest
-    snap/              snapcraft.yaml
+    snap/              snapcraft.yaml; packaging/test-snap.sh installs and launches the built snap in CI
     internal/fractal   Params (view maths) and the escape-time kernels
     internal/render    progressive tiled renderer on a goroutine pool
     internal/palette   256-colour palettes, presets, .map load/save

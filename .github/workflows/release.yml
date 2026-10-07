@@ -154,6 +154,8 @@ jobs:
           fetch-depth: 0 # snapcraft.yaml derives the version from git describe
       - uses: snapcore/action-build@v1
         id: snap
+      - name: Install and launch under confinement
+        run: packaging/test-snap.sh "${{ steps.snap.outputs.snap }}"
       - name: Rename
         run: mv "${{ steps.snap.outputs.snap }}" gofract_${{ github.ref_name }}_${{ matrix.arch }}.snap
       - uses: actions/upload-artifact@v4

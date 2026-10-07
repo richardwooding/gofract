@@ -63,3 +63,16 @@ jobs:
         with:
           go-version-file: go.mod
       - run: go build ./cmd/gofract
+
+  snap:
+    name: Snap builds and launches
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: snapcore/action-build@v1
+        id: snap
+      - name: Install and launch under confinement
+        run: packaging/test-snap.sh "${{ steps.snap.outputs.snap }}"
