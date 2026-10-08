@@ -111,9 +111,18 @@ jobs:
       - name: Install flatpak-builder-lint
         run: flatpak install -y --noninteractive flathub org.flatpak.Builder
       - name: Lint manifest and metainfo
+        # The linter runs flatpak-builder inside the org.flatpak.Builder
+        # sandbox, which needs a writable state directory next to the
+        # manifest; the bind-mounted checkout is not writable to it.
         run: |
-          flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest packaging/flathub/io.github.richardwooding.gofract.yml
-          flatpak run --command=flatpak-builder-lint org.flatpak.Builder appstream assets/io.github.richardwooding.gofract.metainfo.xml
+          lint=$HOME/flathub-lint
+          mkdir -p "$lint"
+          cp packaging/flathub/io.github.richardwooding.gofract.yml packaging/flathub/go.mod.yml packaging/flathub/modules.txt "$lint/"
+          cp assets/io.github.richardwooding.gofract.metainfo.xml "$lint/"
+          chmod -R a+rwX "$lint"
+          cd "$lint"
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest io.github.richardwooding.gofract.yml
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder appstream io.github.richardwooding.gofract.metainfo.xml
       - name: Build as Flathub would
         uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
