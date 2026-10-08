@@ -48,6 +48,11 @@
     <keyword>fractint</keyword>
   </keywords>
   <releases>
+    <release version="0.3.0" date="2026-10-08">
+      <description>
+        <p>macOS app bundle in a disk image, consistent package names, saves fall back to ~/Pictures/gofract when launched from a desktop, and every snap is launch-tested before release.</p>
+      </description>
+    </release>
     <release version="0.2.0" date="2026-10-07">
       <description>
         <p>Adds deb, rpm, Flatpak and Snap packages with a desktop entry and icon, a palette flag, and screenshots.</p>
