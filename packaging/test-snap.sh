@@ -11,7 +11,10 @@ snap list gofract
 
 bin=/snap/bin/gofract
 "$bin" -version
-"$bin" -list | grep -qx mandelbrot
+# Capture to a file first: an early-exiting grep would send SIGPIPE to
+# gofract and fail the pipeline under pipefail.
+"$bin" -list > "$HOME/gofract-list.txt"
+grep -qx mandelbrot "$HOME/gofract-list.txt"
 
 if ! command -v xvfb-run >/dev/null; then
   sudo apt-get update -qq

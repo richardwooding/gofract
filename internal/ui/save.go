@@ -37,6 +37,11 @@ func (a *App) savePNG(path string) error {
 		a.img.ReadPixels(a.pix)
 	}
 	img := &image.RGBA{Pix: a.pix, Stride: w * 4, Rect: image.Rect(0, 0, w, h)}
+	if dir := filepath.Dir(path); dir != "." {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			return err
+		}
+	}
 	f, err := os.Create(path)
 	if err != nil {
 		return err
