@@ -64,6 +64,15 @@ jobs:
         with:
           go-version-file: go.mod
       - run: go build ./cmd/gofract
+      - name: App bundle and disk image
+        if: runner.os == 'macOS'
+        run: |
+          packaging/macos/package.sh gofract ci gofract-ci.dmg
+          hdiutil attach -nobrowse -readonly -mountpoint /tmp/gofract-dmg gofract-ci.dmg
+          ls -la /tmp/gofract-dmg
+          /tmp/gofract-dmg/gofract.app/Contents/MacOS/gofract -version
+          codesign --verify --deep --strict /tmp/gofract-dmg/gofract.app
+          hdiutil detach /tmp/gofract-dmg
 
   snap:
     name: Snap builds and launches

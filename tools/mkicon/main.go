@@ -30,7 +30,7 @@ func main() {
 	}
 	const base = 1024
 	src := render(base)
-	for _, size := range []int{512, 256, 128, 64, 48, 32} {
+	for _, size := range []int{1024, 512, 256, 128, 64, 48, 32, 16} {
 		dst := image.NewRGBA(image.Rect(0, 0, size, size))
 		draw.CatmullRom.Scale(dst, dst.Bounds(), src, src.Bounds(), draw.Over, nil)
 		path := filepath.Join(dir, fmt.Sprintf("icon-%d.png", size))

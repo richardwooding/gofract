@@ -99,10 +99,14 @@ jobs:
           lipo -info dist/gofract/gofract
           cp README.md LICENSE dist/gofract/
           tar -C dist -czf gofract_${{ github.ref_name }}_darwin_universal.tar.gz gofract
+      - name: App bundle and disk image
+        run: packaging/macos/package.sh dist/gofract/gofract "${{ github.ref_name }}" gofract_${{ github.ref_name }}_darwin_universal.dmg
       - uses: actions/upload-artifact@v4
         with:
           name: macos
-          path: gofract_*.tar.gz
+          path: |
+            gofract_*.tar.gz
+            gofract_*.dmg
 
   flatpak:
     name: Flatpak ${{ matrix.arch }}

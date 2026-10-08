@@ -26,7 +26,7 @@ func main() {
 		load    = flag.String("load", "", "JSON sidecar written by S to reopen a view")
 		mapFile = flag.String("map", "", "Fractint .map palette to start with")
 		palName = flag.String("palette", "", "preset palette to start with: classic, fire, ocean, grey or rainbow")
-		saveDir = flag.String("out", "", "directory for saved images (default: current directory)")
+		saveDir = flag.String("out", "", "directory for saved images (default: current directory, or ~/Pictures/gofract when that is not writable)")
 		typ     = flag.String("type", "", "fractal type to start with (see -list)")
 		list    = flag.Bool("list", false, "print the fractal types and exit")
 		iter    = flag.Int("iter", 0, "max iterations (default 256)")
@@ -53,7 +53,7 @@ func main() {
 	cfg := ui.Config{
 		Params:  fractal.Default(),
 		Workers: *workers,
-		SaveDir: *saveDir,
+		SaveDir: defaultSaveDir(*saveDir),
 		GPU:     *gpu,
 		Shot:    *shot,
 		MapDirs: mapDirs(),
@@ -109,4 +109,24 @@ func mapDirs() []string {
 		dirs = append(dirs, filepath.Join(c, "gofract", "maps"))
 	}
 	return dirs
+}
+
+// defaultSaveDir returns the directory S saves into. An explicit -out wins.
+// Otherwise the current directory is used when it is writable, which is the
+// terminal case; an app launched from Finder or a desktop menu starts in /
+// or another read-only place, so those saves go to ~/Pictures/gofract.
+func defaultSaveDir(flagValue string) string {
+	if flagValue != "" {
+		return flagValue
+	}
+	if f, err := os.CreateTemp(".", ".gofract-*"); err == nil {
+		f.Close()
+		os.Remove(f.Name())
+		return ""
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	return filepath.Join(home, "Pictures", "gofract")
 }

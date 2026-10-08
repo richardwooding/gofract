@@ -43,10 +43,15 @@ Windows (amd64, arm64), all named `gofract_<ver>_<os>_<arch>.<ext>`:
 | `gofract_<ver>_linux_<arch>.rpm` | `sudo dnf install ./gofract_<ver>_linux_<arch>.rpm` |
 | `gofract_<ver>_linux_<arch>.flatpak` | `flatpak install gofract_<ver>_linux_<arch>.flatpak` (needs the Flathub remote for the runtime) |
 | `gofract_<ver>_linux_<arch>.snap` | `sudo snap install --dangerous gofract_<ver>_linux_<arch>.snap` |
-| `gofract_<ver>_darwin_universal.tar.gz` | unpack and run; allow the unsigned binary under Privacy & Security on first launch |
+| `gofract_<ver>_darwin_universal.dmg` | open, drag gofract to Applications; on first launch right-click the app and choose Open, or allow it under System Settings > Privacy & Security, since it is not notarised |
+| `gofract_<ver>_darwin_universal.tar.gz` | the bare binary for terminal use |
 | `gofract_<ver>_windows_<arch>.zip` | unpack and run `gofract.exe` |
 
-The deb, rpm, Flatpak and Snap packages add a desktop entry and icon. The
+The deb, rpm, Flatpak and Snap packages add a desktop entry and icon, and
+the macOS disk image holds a proper app bundle. When gofract is launched
+from Finder or a desktop menu rather than a terminal, `S` saves into
+`~/Pictures/gofract`; from a terminal it saves into the current directory
+unless `-out` says otherwise. The
 Flatpak and Snap are not yet published to Flathub or the Snap Store, so they
 install as sideloaded bundles; `--dangerous` tells snapd the file is unsigned.
 Packaging sources live in `packaging/` and `snap/`.
@@ -133,7 +138,7 @@ float64 and pixelates past that depth, and the status line says so.
     cmd/gofract        entry point and flags
     tools/mkicon       renders the application icon into assets/
     assets/            icon, desktop entry and AppStream metainfo
-    packaging/         nfpm (deb/rpm) config and Flatpak manifest
+    packaging/         nfpm (deb/rpm) config, Flatpak manifest, macOS app bundle script
     snap/              snapcraft.yaml; packaging/test-snap.sh installs and launches the built snap in CI
     internal/fractal   Params (view maths) and the escape-time kernels
     internal/render    progressive tiled renderer on a goroutine pool
