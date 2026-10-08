@@ -128,7 +128,11 @@ jobs:
         with:
           bundle: gofract-flathub.flatpak
           manifest-path: packaging/flathub/io.github.richardwooding.gofract.yml
+          mirror-screenshots-url: https://dl.flathub.org/media
           cache: false
           upload-artifact: false
+      - name: Commit mirrored screenshots as Flathub's builder does
+        run: |
+          ostree commit --repo=repo --canonical-permissions --branch=screenshots/x86_64 flatpak_app/files/share/app-info/media
       - name: Lint the built repository
         run: flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo
