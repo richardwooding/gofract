@@ -102,9 +102,12 @@ jobs:
       - name: Generated module list matches go.sum
         run: |
           go install github.com/dennwc/flatpak-go-mod@latest
-          mkdir -p /tmp/gomod && (cd /tmp/gomod && "$(go env GOPATH)/bin/flatpak-go-mod" "$GITHUB_WORKSPACE")
-          diff -u packaging/flathub/go.mod.yml /tmp/gomod/go.mod.yml
-          diff -u packaging/flathub/modules.txt /tmp/gomod/modules.txt
+          # The tool moves vendor/modules.txt into its output directory, so
+          # that directory must sit on the same filesystem as the checkout.
+          mkdir -p .gomod-check && (cd .gomod-check && "$(go env GOPATH)/bin/flatpak-go-mod" ..)
+          diff -u packaging/flathub/go.mod.yml .gomod-check/go.mod.yml
+          diff -u packaging/flathub/modules.txt .gomod-check/modules.txt
+          rm -rf .gomod-check vendor
       - name: Install flatpak-builder-lint
         run: flatpak install -y --noninteractive flathub org.flatpak.Builder
       - name: Lint manifest and metainfo
