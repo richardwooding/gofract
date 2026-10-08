@@ -5,15 +5,14 @@
 #   flatpak-builder --user --install --force-clean build-dir packaging/flatpak/io.github.richardwooding.gofract.yml
 app-id: io.github.richardwooding.gofract
 runtime: org.freedesktop.Platform
-runtime-version: "25.08"
+runtime-version: "26.08"
 sdk: org.freedesktop.Sdk
 command: gofract
 finish-args:
   - --share=ipc
-  # Ebitengine opens an X11 (XWayland) window on Linux, so X11 must be
-  # granted even when a Wayland session is running.
+  # Ebitengine opens an X11 (XWayland) window on Linux and has no Wayland
+  # backend, so only the X11 socket is granted.
   - --socket=x11
-  - --socket=wayland
   - --device=dri
   # Saves go to ~/Pictures/gofract (the working directory is read-only in
   # the sandbox); -load and L read files from there too.
