@@ -15,8 +15,9 @@ finish-args:
   - --socket=x11
   - --socket=wayland
   - --device=dri
-  # Saved images and -load files live wherever the user runs gofract.
-  - --filesystem=home
+  # Saves go to ~/Pictures/gofract (the working directory is read-only in
+  # the sandbox); -load and L read files from there too.
+  - --filesystem=xdg-pictures:create
 build-options:
   env:
     GOFLAGS: -mod=vendor -trimpath

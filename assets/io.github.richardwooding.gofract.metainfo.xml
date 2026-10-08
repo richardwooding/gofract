@@ -41,6 +41,10 @@
     </screenshot>
   </screenshots>
   <content_rating type="oars-1.1"/>
+  <branding>
+    <color type="primary" scheme_preference="light">#5b8def</color>
+    <color type="primary" scheme_preference="dark">#1a2a6c</color>
+  </branding>
   <keywords>
     <keyword>fractal</keyword>
     <keyword>mandelbrot</keyword>

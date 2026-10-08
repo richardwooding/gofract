@@ -86,3 +86,37 @@ jobs:
         id: snap
       - name: Install and launch under confinement
         run: packaging/test-snap.sh "${{ steps.snap.outputs.snap }}"
+
+  flathub:
+    name: Flathub manifest builds and lints
+    needs: test
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Generated module list matches go.sum
+        run: |
+          go install github.com/dennwc/flatpak-go-mod@latest
+          mkdir -p /tmp/gomod && (cd /tmp/gomod && "$(go env GOPATH)/bin/flatpak-go-mod" "$GITHUB_WORKSPACE")
+          diff -u packaging/flathub/go.mod.yml /tmp/gomod/go.mod.yml
+          diff -u packaging/flathub/modules.txt /tmp/gomod/modules.txt
+      - name: Install flatpak-builder-lint
+        run: flatpak install -y --noninteractive flathub org.flatpak.Builder
+      - name: Lint manifest and metainfo
+        run: |
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder manifest packaging/flathub/io.github.richardwooding.gofract.yml
+          flatpak run --command=flatpak-builder-lint org.flatpak.Builder appstream assets/io.github.richardwooding.gofract.metainfo.xml
+      - name: Build as Flathub would
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: gofract-flathub.flatpak
+          manifest-path: packaging/flathub/io.github.richardwooding.gofract.yml
+          cache: false
+          upload-artifact: false
+      - name: Lint the built repository
+        run: flatpak run --command=flatpak-builder-lint org.flatpak.Builder repo repo

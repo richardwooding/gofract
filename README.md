@@ -47,13 +47,18 @@ Windows (amd64, arm64), all named `gofract_<ver>_<os>_<arch>.<ext>`:
 | `gofract_<ver>_darwin_universal.tar.gz` | the bare binary for terminal use |
 | `gofract_<ver>_windows_<arch>.zip` | unpack and run `gofract.exe` |
 
+A Flathub submission is prepared under `packaging/flathub/` and checked in CI;
+see its README for the steps to publish there. Until then the Flatpak
+installs as a sideloaded bundle.
+
 The deb, rpm, Flatpak and Snap packages add a desktop entry and icon, and
 the macOS disk image holds a proper app bundle. When gofract is launched
 from Finder or a desktop menu rather than a terminal, `S` saves into
 `~/Pictures/gofract`; from a terminal it saves into the current directory
 unless `-out` says otherwise. The
-Flatpak and Snap are not yet published to Flathub or the Snap Store, so they
-install as sideloaded bundles; `--dangerous` tells snapd the file is unsigned.
+The Snap is not yet in the Snap Store, so it installs as a sideloaded bundle;
+`--dangerous` tells snapd the file is unsigned. Flatpak saves land in
+`~/Pictures/gofract`, the only folder the sandbox can write.
 Packaging sources live in `packaging/` and `snap/`.
 
 To cut a release, push a tag: `git tag v0.2.0 && git push origin v0.2.0`. The
@@ -138,7 +143,8 @@ float64 and pixelates past that depth, and the status line says so.
     cmd/gofract        entry point and flags
     tools/mkicon       renders the application icon into assets/
     assets/            icon, desktop entry and AppStream metainfo
-    packaging/         nfpm (deb/rpm) config, Flatpak manifest, macOS app bundle script
+    packaging/         nfpm (deb/rpm) config, Flatpak bundle manifest, Flathub
+                       submission, macOS app bundle script
     snap/              snapcraft.yaml; packaging/test-snap.sh installs and launches the built snap in CI
     internal/fractal   Params (view maths) and the escape-time kernels
     internal/render    progressive tiled renderer on a goroutine pool
