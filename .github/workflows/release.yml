@@ -169,6 +169,45 @@ jobs:
           name: snap-${{ matrix.arch }}
           path: gofract_*.snap
 
+  flatpak-repo:
+    name: Publish Flatpak repository
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: flatpak
+    runs-on: ubuntu-latest
+    concurrency: flatpak-repo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: site
+      - name: Install flatpak and ostree
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq flatpak ostree
+      - name: Import signing key
+        run: |
+          echo "${{ secrets.FLATPAK_GPG_PRIVATE_KEY }}" | gpg --batch --import
+          gpg --list-secret-keys --keyid-format long
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: flatpak-*
+          path: bundles
+          merge-multiple: true
+      - name: Import bundles and sign the repository
+        env:
+          GPG_KEY_ID: ${{ secrets.FLATPAK_GPG_KEY_ID }}
+          SITE_URL: https://richardwooding.github.io/gofract
+        run: packaging/flatpak/publish-repo.sh site bundles/*.flatpak
+      - name: Push to GitHub Pages
+        run: |
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Publish ${{ github.ref_name }}" || echo "nothing to commit"
+          git push
+
   release:
     name: Publish release
     if: startsWith(github.ref, 'refs/tags/')

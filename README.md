@@ -41,15 +41,23 @@ Windows (amd64, arm64), all named `gofract_<ver>_<os>_<arch>.<ext>`:
 | `gofract_<ver>_linux_<arch>.tar.gz` | unpack and run `gofract` |
 | `gofract_<ver>_linux_<arch>.deb` | `sudo apt install ./gofract_<ver>_linux_<arch>.deb` |
 | `gofract_<ver>_linux_<arch>.rpm` | `sudo dnf install ./gofract_<ver>_linux_<arch>.rpm` |
-| `gofract_<ver>_linux_<arch>.flatpak` | `flatpak install gofract_<ver>_linux_<arch>.flatpak` (needs the Flathub remote for the runtime) |
+| `gofract_<ver>_linux_<arch>.flatpak` | sideload bundle; prefer the repository below, which also delivers updates |
 | `gofract_<ver>_linux_<arch>.snap` | `sudo snap install --dangerous gofract_<ver>_linux_<arch>.snap` |
 | `gofract_<ver>_darwin_universal.dmg` | open, drag gofract to Applications; on first launch right-click the app and choose Open, or allow it under System Settings > Privacy & Security, since it is not notarised |
 | `gofract_<ver>_darwin_universal.tar.gz` | the bare binary for terminal use |
 | `gofract_<ver>_windows_<arch>.zip` | unpack and run `gofract.exe` |
 
-A Flathub submission is prepared under `packaging/flathub/` and checked in CI;
-see its README for the steps to publish there. Until then the Flatpak
-installs as a sideloaded bundle.
+### Flatpak repository
+
+The release workflow publishes a signed Flatpak repository at
+https://richardwooding.github.io/gofract/. One command adds it as a remote
+and installs the app, and `flatpak update` then follows new releases:
+
+    flatpak install --from https://richardwooding.github.io/gofract/gofract.flatpakref
+
+The runtime comes from Flathub, so that remote must be configured. The
+repository's public key is `packaging/flatpak/gofract.gpg`; the private key
+lives only in the repository's CI secrets.
 
 The deb, rpm, Flatpak and Snap packages add a desktop entry and icon, and
 the macOS disk image holds a proper app bundle. When gofract is launched

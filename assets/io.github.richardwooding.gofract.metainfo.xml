@@ -52,6 +52,11 @@
     <keyword>fractint</keyword>
   </keywords>
   <releases>
+    <release version="0.3.1" date="2026-10-12">
+      <description>
+        <p>Adds a self-hosted Flatpak repository with updates, narrows the Flatpak sandbox to the Pictures folder, and fixes saving from a read-only working directory.</p>
+      </description>
+    </release>
     <release version="0.3.0" date="2026-10-08">
       <description>
         <p>macOS app bundle in a disk image, consistent package names, saves fall back to ~/Pictures/gofract when launched from a desktop, and every snap is launch-tested before release.</p>
