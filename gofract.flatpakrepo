@@ -1,0 +1,8 @@
+[Flatpak Repo]
+Title=gofract
+Url=https://richardwooding.github.io/gofract/repo/
+Homepage=https://github.com/richardwooding/gofract
+Comment=Fractint-style fractal viewer
+Description=Explore the Mandelbrot set and friends, Fractint style.
+Icon=https://raw.githubusercontent.com/richardwooding/gofract/main/assets/icon-128.png
+GPGKey=mDMEaszElhYJKwYBBAHaRw8BAQdA2tteQV528HQnwKCiKvHg4M9bDcUeGVuJOqWT7ehaYoC0NmdvZnJhY3QgRmxhdHBhayByZXBvc2l0b3J5IDxyaWNoYXJkLndvb2RpbmdAZ21haWwuY29tPoiTBBMWCgA7FiEEBshqPXJ7BBRhyxJJtuDXhftywMEFAmrMxJYCGwMFCwkIBwICIgIGFQoJCAsCBBYCAwECHgcCF4AACgkQtuDXhftywMH5DgEAhLPjDK8dPRuxzUVSs9bS0RZuTVrbS2XTYKzxjXuB32UA/1Fv0QRlhVEuGcht7bzA+6yKuoixKaUxwGvAvchW+BMJ

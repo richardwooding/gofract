@@ -1,0 +1,12 @@
+[core]
+repo_version=1
+mode=archive-z2
+indexed-deltas=true
+
+[flatpak]
+title=gofract
+comment=Fractint-style fractal viewer
+description=Explore the Mandelbrot set and friends, Fractint style.
+homepage=https://github.com/richardwooding/gofract
+icon=https://raw.githubusercontent.com/richardwooding/gofract/main/assets/icon-128.png
+default-branch=master
